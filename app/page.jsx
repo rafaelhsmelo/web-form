@@ -89,15 +89,15 @@ export default function Home() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('quiz_responses')
-        .insert({
+      if (supabase) {
+        const { error } = await supabase.from('quiz_responses').insert({
           nome: userInfo.nome,
           unidade: userInfo.unidade,
           respostas: answers,
         });
 
-      if (error) throw error;
+        if (error) throw error;
+      }
     } catch (error) {
       console.error('Erro ao enviar respostas:', error);
     } finally {

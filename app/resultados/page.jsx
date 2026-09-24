@@ -77,6 +77,11 @@ export default function ResultadosPage() {
   const fetchResults = async () => {
     setLoading(true);
     try {
+      if (!supabase) {
+        setData([]);
+        return;
+      }
+
       const { data: rows, error } = await supabase
         .from('quiz_responses')
         .select('*')

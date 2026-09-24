@@ -1,0 +1,128 @@
+[
+  {
+    "id": "estilo",
+    "question": "Qual estilo de interiores melhor reflete a sua personalidade?",
+    "subtitle": "Selecione a opção com a qual mais se identifica.",
+    "hasImage": true,
+    "options": [
+      {
+        "value": "minimalista",
+        "label": "Minimalista",
+        "description": "Linhas limpas, espaços abertos e simplicidade.",
+        "image": "https://images.pexels.com/photos/29012619/pexels-photo-29012619.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      },
+      {
+        "value": "scandinavo",
+        "label": "Escandinavo",
+        "description": "Madeira clara, tons neutros e muita luz natural.",
+        "image": "https://images.pexels.com/photos/19966766/pexels-photo-19966766.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      },
+      {
+        "value": "classico",
+        "label": "Clássico Elegante",
+        "description": "Detalhes ornamentais, materiais nobres e sofisticação.",
+        "image": "https://images.pexels.com/photos/29499560/pexels-photo-29499560.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      },
+      {
+        "value": "industrial",
+        "label": "Industrial",
+        "description": "Concreto aparente, metal e texturas cruas.",
+        "image": "https://images.pexels.com/photos/7045921/pexels-photo-7045921.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      },
+      {
+        "value": "bohemio",
+        "label": "Boémio Aconchegante",
+        "description": "Cores quentes, plantas e mistura de texturas.",
+        "image": "https://images.pexels.com/photos/20937742/pexels-photo-20937742.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      }
+    ]
+  },
+  {
+    "id": "paleta",
+    "question": "Que paleta de cores prefere para o seu ambiente?",
+    "subtitle": "Pense nas cores que transmitem tranquilidade e bem-estar.",
+    "hasImage": false,
+    "options": [
+      {
+        "value": "neutros",
+        "label": "Tons Neutros",
+        "description": "Branco, bege, cinza e preto — atemporal e sereno."
+      },
+      {
+        "value": "quentes",
+        "label": "Tons Quentes",
+        "description": "Terracota, mostarda e madeira — acolhedor e convidativo."
+      },
+      {
+        "value": "frios",
+        "label": "Tons Frios",
+        "description": "Azul, verde e lilás — fresco e calmante."
+      },
+      {
+        "value": "contraste",
+        "label": "Alto Contraste",
+        "description": "Preto e branco com toques de cor — dramático e moderno."
+      }
+    ]
+  },
+  {
+    "id": "ambiente",
+    "question": "Qual é o ambiente prioritário na sua casa?",
+    "subtitle": "O espaço que merece maior atenção no projeto.",
+    "hasImage": true,
+    "options": [
+      {
+        "value": "sala",
+        "label": "Sala de Estar",
+        "description": "O coração da casa para receber e relaxar.",
+        "image": "https://images.pexels.com/photos/6980724/pexels-photo-6980724.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      },
+      {
+        "value": "cozinha",
+        "label": "Cozinha & Jantar",
+        "description": "Funcionalidade e convívio em harmonia.",
+        "image": "https://images.pexels.com/photos/7587743/pexels-photo-7587743.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      },
+      {
+        "value": "quarto",
+        "label": "Quarto Principal",
+        "description": "Um refúgio privado de descanso e conforto.",
+        "image": "https://images.pexels.com/photos/7061089/pexels-photo-7061089.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      },
+      {
+        "value": "escritorio",
+        "label": "Escritório",
+        "description": "Produtividade com estilo e foco.",
+        "image": "https://images.pexels.com/photos/13075329/pexels-photo-13075329.jpeg?auto=compress&cs=tinysrgb&h=650&w=940"
+      }
+    ]
+  },
+  {
+    "id": "prioridade",
+    "question": "O que é mais importante para si no projeto?",
+    "subtitle": "Escolha a prioridade que guiará as decisões de design.",
+    "hasImage": false,
+    "options": [
+      {
+        "value": "funcionalidade",
+        "label": "Funcionalidade",
+        "description": "Cada espaço optimizado para o dia a dia."
+      },
+      {
+        "value": "estetica",
+        "label": "Estética",
+        "description": "A beleza visual em primeiro lugar."
+      },
+      {
+        "value": "conforto",
+        "label": "Conforto",
+        "description": "Sensações tácteis e bem-estar acima de tudo."
+      },
+      {
+        "value": "sustentabilidade",
+        "label": "Sustentabilidade",
+        "description": "Materiais ecológicos e soluções energeticamente eficientes."
+      }
+    ]
+  }
+]

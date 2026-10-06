@@ -1,5 +1,5 @@
 // Define o formato de cada opção de resposta
-export type Option = {
+export type option = {
     id: string;
     label: string;
     description?: string; // A interrogação é para dizer que é opcional
@@ -7,7 +7,7 @@ export type Option = {
 };
 
 // Define o formato de cada tela/pergunta
-export type Question ={
+export type question ={
     id: string;
     title: string;
     subtitle?: string;
@@ -17,7 +17,7 @@ export type Question ={
 
 // Matriz das perguntas e opções (lista do cliente)
 // 1. IDENTIFICAÇÃO
-export const questions: Question[] = [
+export const questions: question[] = [
   {
     id: "unidade",
     title: "Qual é a sua unidade no condomínio?",

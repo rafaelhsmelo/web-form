@@ -55,7 +55,7 @@ export default function Home() {
         </div>
 
         {/* --- OPÇÕES DE RESPOSTA --- */}
-        <div className="grid grid-col-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {/* Percorre a lista de opções da pergunta atual */}
           {question.options.map((option) => {
             // Verifica se a respost guardada para a pergunta é igual a este botão
@@ -65,17 +65,46 @@ export default function Home() {
               <button
                 key={option.id}
                 onClick={() => handleSelectOption(option.id)}
-                className={`p-6 border rounded-xl text-left transition-all ${
+                // CORREÇÃO: Adicionado 'flex' e corrigido 'items-center' (com hífen)
+                className={`p-4 border rounded-xl text-left transition-all flex items-center w-full gap-4 ${
                   isSelected
                     ? "border-black bg-gray-50 ring-2 ring-black"
                     : "border-gray-200 hover:border-gray-400"
                 }`}
               >
-                <span
-                  className={`font-medium ${isSelected ? "text-black" : "text-gray-700"}`}
-                >
-                  {option.label}
-                </span>
+                {/* Renderiza imagem da opção, se houver */}
+                {option.imageUrl && (
+                  <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={option.imageUrl}
+                      alt={option.label}
+                      className="w-full h-full object-cover rounded-lg border border-gray-200"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-col flex-grow">
+                  <span
+                    className={`font-medium ${isSelected ? "text-black" : "text-gray-700"}`}
+                  >
+                    {option.label}
+                  </span>
+
+                  {/* Renderiza um ✓ na opção selectionada */}
+                  {isSelected && (
+                    <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
+                      <span className="text-white text-[10px]">✓</span>
+                    </div>
+                  )}
+
+                  {/* Renderiza descrição da opção, se houver */}
+                  {option.description && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {option.description}
+                    </p>
+                  )}
+                </div>
               </button>
             );
           })}

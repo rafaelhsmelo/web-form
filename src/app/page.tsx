@@ -11,6 +11,9 @@ export default function Home() {
   // 2.Variável de apoio para a pergunta da vez
   const question = questions[currentStep];
 
+  // Calcula a porcentafem da barra de progresso
+  const progressPercentage = ((currentStep + 1) / questions.length) * 100;
+
   // Verifica se existe uma resposta grava para o ID da pergunta atual
   const hasAnsweredCurrent = answers[question.id] !== undefined;
 
@@ -38,10 +41,25 @@ export default function Home() {
       <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-3xl">
         {/* --- CABEÇALHO --- */}
         <div className="mb-8">
-          {/* Progresso */}
-          <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">
-            Pergunta {currentStep + 1} de {questions.length}
-          </span>
+          {/* Progresso visual */}
+          <div className="flex flex-col gap-2 mb-6">
+            {/* Texto do progresso */}
+            <div className="flex justify-between text-sm font-medium text-gray-400 uppercase tracking-wider">
+              <span>
+                Passo {currentStep + 1} de {questions.length}
+              </span>
+              <span>{Math.round(progressPercentage)}%</span>
+            </div>
+
+            {/* Barra de progresso */}
+            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden block">
+              {/* Preenchimento do progresso */}
+              <div
+                className="h-full bg-black transition-all duration-500 ease-out"
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+          </div>
 
           {/* Título */}
           <h2 className="text-3xl font-semibold text-gray-800 mt-2">

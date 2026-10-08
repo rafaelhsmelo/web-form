@@ -104,7 +104,7 @@ export async function createUser(email: string, password: string, name: string):
 }
 /**
  * Salva resposta de formulário
- * Retorna a resposta criada
+ * Se o ID já existe, atualiza. Senão, cria nova.
  */
 export async function saveFormResponse(response: FormResponse): Promise<FormResponse> {
   const responses = await getAllResponses()
@@ -115,7 +115,20 @@ export async function saveFormResponse(response: FormResponse): Promise<FormResp
     throw new Error('Usuário não existe')
   }
 
-  responses.push(response)
+  // Verifica se já existe uma resposta com esse ID
+  const existingIndex = responses.findIndex(r => r.id === response.id)
+  
+  if (existingIndex !== -1) {
+    // Atualiza resposta existente, mantendo createdAt original
+    responses[existingIndex] = {
+      ...response,
+      createdAt: responses[existingIndex].createdAt
+    }
+  } else {
+    // Cria nova resposta
+    responses.push(response)
+  }
+  
   await fs.writeFile(RESPONSES_FILE, JSON.stringify(responses, null, 2))
   return response
 }
@@ -125,6 +138,23 @@ export async function saveFormResponse(response: FormResponse): Promise<FormResp
 export async function getUserResponses(userId: string): Promise<FormResponse[]> {
   const responses = await getAllResponses()
   return responses.filter(r => r.userId === userId)
+}
+
+/**
+ * Deleta uma resposta de formulário por ID
+ * Retorna true se deletou, false se não encontrou
+ */
+export async function deleteFormResponse(responseId: string): Promise<boolean> {
+  const responses = await getAllResponses()
+  const index = responses.findIndex(r => r.id === responseId)
+  
+  if (index === -1) {
+    return false
+  }
+  
+  responses.splice(index, 1)
+  await fs.writeFile(RESPONSES_FILE, JSON.stringify(responses, null, 2))
+  return true
 }
 
 /**

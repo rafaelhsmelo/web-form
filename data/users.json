@@ -5,5 +5,12 @@
     "password": "$2b$10$p74r02v9IFSi21OWJjFQuefjet9P38X2w8sYekwPXoHf32/THmcbO",
     "name": "João Silva",
     "createdAt": "2026-10-08T12:27:56.728Z"
+  },
+  {
+    "id": "tags28sqkmuzjvxdy",
+    "email": "dail.neto@hotmail.com",
+    "password": "$2b$10$e15b/OUpvbh6J1QVFKcMr.R6mqWjHauTVSPwmKjdriYW4hI0W.Iwa",
+    "name": "Adail Medeiros",
+    "createdAt": "2026-10-08T13:06:38.662Z"
   }
 ]

@@ -7,17 +7,31 @@ import { FormResponse } from '@/lib/types'
 
 export default function Dashboard() {
   const router = useRouter()
-  const { user, logout } = useAuth()
-
-  if (!user) return null
-
-  const userId = user.id
+  const { user, logout, isLoading: authLoading } = useAuth()
 
   const [responses, setResponses] = useState<FormResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mounted, setMounted] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [selectedResponseId, setSelectedResponseId] = useState<string | null>(null)
+
+  // Todos os hooks ANTES de qualquer return condicional
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
+    if (mounted && !authLoading && !user) {
+      router.push('/')
+    }
+  }, [user, authLoading, mounted, router])
+
+  useEffect(() => {
+    if (!user) return
+
+    const userId = user.id
+
     async function loadResponses() {
       try {
         const res = await fetch(`/api/form?userId=${userId}`)
@@ -38,11 +52,42 @@ export default function Dashboard() {
     }
 
     loadResponses()
-  }, [userId])
+  }, [user])
+
+  // Return condicional DEPOIS de todos os hooks
+  if (!mounted || authLoading || !user) return null
 
   const handleLogout = () => {
     logout()
     router.push('/')
+  }
+
+  const handleDelete = async () => {
+    if (!selectedResponseId) return
+
+    try {
+      const res = await fetch('/api/form', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ responseId: selectedResponseId })
+      })
+
+      if (res.ok) {
+        setResponses(prev => prev.filter(r => r.id !== selectedResponseId))
+        setShowDeleteModal(false)
+        setSelectedResponseId(null)
+      }
+    } catch (err) {
+      console.error('Erro ao deletar:', err)
+    }
+  }
+
+  const handleEdit = (responseId: string) => {
+    router.push(`/form?editId=${responseId}`)
+  }
+
+  const handleView = (response: FormResponse) => {
+    router.push(`/view?id=${response.id}`)
   }
 
   return (
@@ -64,7 +109,7 @@ export default function Dashboard() {
           <div className={`px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/30 ${!sidebarOpen && 'flex justify-center'}`}>
             <div className="flex items-center gap-3">
               <span className="text-2xl">📊</span>
-              {sidebarOpen && <span className="text-white font-medium">Projetos</span>}
+              {sidebarOpen && <span className="text-white font-medium">Meus Projetos</span>}
             </div>
           </div>
 
@@ -119,64 +164,7 @@ export default function Dashboard() {
                 <h1 className="text-3xl font-bold text-white mb-2">
                   Bem-vindo, {user.name}! 👋
                 </h1>
-                <p className="text-gray-400">Gerencie seus projetos e respostas</p>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Content */}
-        <div className="p-8 space-y-8">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/30 rounded-xl p-6 hover:border-blue-500/60 transition-all hover:shadow-lg hover:shadow-blue-500/10">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Total de Projetos</p>
-                  <p className="text-4xl font-bold text-white mt-2">{responses.length}</p>
-                </div>
-                <span className="text-3xl">📋</span>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-500/20 to-green-500/5 border border-green-500/30 rounded-xl p-6 hover:border-green-500/60 transition-all hover:shadow-lg hover:shadow-green-500/10">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Concluídos Este Mês</p>
-                  <p className="text-4xl font-bold text-white mt-2">{
-                    responses.filter(r => {
-                      const date = new Date(r.createdAt)
-                      const now = new Date()
-                      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
-                    }).length
-                  }</p>
-                </div>
-                <span className="text-3xl">✅</span>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/30 rounded-xl p-6 hover:border-purple-500/60 transition-all hover:shadow-lg hover:shadow-purple-500/10">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-gray-400 text-sm font-medium">Último Projeto</p>
-                  <p className="text-lg font-bold text-white mt-2">
-                    {responses.length > 0
-                      ? new Date(responses[0].createdAt).toLocaleDateString('pt-BR')
-                      : 'Nenhum ainda'
-                    }
-                  </p>
-                </div>
-                <span className="text-3xl">📅</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Section */}
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white">Meus Projetos</h2>
-                <p className="text-gray-400 text-sm mt-1">Histórico completo de formulários respondidos</p>
+                <p className="text-gray-400">Gerenciar seus projetos de residência</p>
               </div>
               <button
                 onClick={() => router.push('/form')}
@@ -185,94 +173,142 @@ export default function Dashboard() {
                 + Novo Projeto
               </button>
             </div>
+          </div>
+        </header>
 
-            {/* Loading State */}
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="space-y-4 w-full max-w-2xl">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-24 bg-gray-800/50 rounded-lg animate-pulse border border-gray-700"></div>
-                  ))}
-                </div>
-              </div>
-            ) : responses.length === 0 ? (
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700 rounded-xl p-12 text-center">
-                <span className="text-5xl mb-4 block">📭</span>
-                <h3 className="text-xl font-bold text-white mb-2">Nenhum projeto ainda</h3>
-                <p className="text-gray-400 mb-6">Comece a criar seus projetos respondendo o formulário de residência</p>
-                <button
-                  onClick={() => router.push('/form')}
-                  className="inline-block px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-green-500/50 hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  Criar Primeiro Projeto
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {responses.map((response, index) => (
-                  <div
-                    key={response.id}
-                    className="group bg-gradient-to-r from-gray-800/50 to-gray-900/30 border border-gray-700 hover:border-green-500/50 rounded-xl p-6 transition-all hover:shadow-lg hover:shadow-green-500/10 hover:bg-gray-800/60"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-green-400/20 to-green-600/20 border border-green-500/30 rounded-lg flex items-center justify-center">
-                            <span className="text-xl">📐</span>
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-white">
-                              Projeto #{responses.length - index}
-                            </h3>
-                            <p className="text-sm text-gray-400">
-                              📅 {new Date(response.createdAt).toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Respostas em Grid */}
-                        <div className="grid grid-cols-3 gap-3 mt-4">
-                          <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                            <p className="text-xs text-gray-500 font-medium uppercase">Unidade</p>
-                            <p className="text-sm text-green-400 font-semibold mt-1">
-                              {response.answers.unidade?.split('_').pop()?.toUpperCase() ?? '—'}
-                            </p>
-                          </div>
-                          <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                            <p className="text-xs text-gray-500 font-medium uppercase">Uso Principal</p>
-                            <p className="text-sm text-green-400 font-semibold mt-1">
-                              {response.answers.uso_principal?.split('_').slice(0, 2).join(' ').toUpperCase() ?? '—'}
-                            </p>
-                          </div>
-                          <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                            <p className="text-xs text-gray-500 font-medium uppercase">Frequência</p>
-                            <p className="text-sm text-green-400 font-semibold mt-1">
-                              {response.answers.frequencia?.split('_').slice(0, 2).join(' ').toUpperCase() ?? '—'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => alert(JSON.stringify(response.answers, null, 2))}
-                        className="px-4 py-2 bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 rounded-lg font-medium text-sm transition-all whitespace-nowrap group-hover:border-green-500/60 group-hover:shadow-lg group-hover:shadow-green-500/10"
-                      >
-                        Ver Detalhes
-                      </button>
-                    </div>
-                  </div>
+        {/* Content */}
+        <div className="p-8 space-y-6">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="space-y-4 w-full">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-32 bg-gray-800/50 rounded-xl animate-pulse border border-gray-700"></div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          ) : responses.length === 0 ? (
+            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700 rounded-xl p-16 text-center">
+              <span className="text-6xl mb-4 block">📭</span>
+              <h3 className="text-2xl font-bold text-white mb-2">Nenhum projeto ainda</h3>
+              <p className="text-gray-400 mb-8">Comece a criar seus projetos respondendo o formulário de residência</p>
+              <button
+                onClick={() => router.push('/form')}
+                className="inline-block px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-green-500/50 hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Criar Primeiro Projeto
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {responses.map((response, index) => (
+                <div
+                  key={response.id}
+                  className="group bg-gradient-to-br from-gray-800/60 to-gray-900/40 border border-gray-700 hover:border-green-500/50 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:shadow-green-500/10"
+                >
+                  {/* Card Header */}
+                  <div className="bg-gradient-to-r from-green-600/20 to-green-600/5 px-6 py-4 border-b border-gray-700/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-bold text-white">
+                        Projeto #{responses.length - index}
+                      </h3>
+                      <span className="px-3 py-1 bg-green-500/20 text-green-300 text-xs font-semibold rounded-full border border-green-500/30">
+                        Finalizado
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-400">
+                      📅 {new Date(response.createdAt).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+
+                  {/* Card Content - Resume das respostas */}
+                  <div className="px-6 py-4 space-y-3">
+                    <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                      <p className="text-xs text-gray-500 font-medium uppercase mb-1">Tipo de Unidade</p>
+                      <p className="text-sm text-green-400 font-semibold">
+                        {response.answers.unidade?.split('_').pop()?.toUpperCase() ?? '—'}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                      <p className="text-xs text-gray-500 font-medium uppercase mb-1">Uso Principal</p>
+                      <p className="text-sm text-green-400 font-semibold">
+                        {response.answers.uso_principal?.split('_').slice(0, 2).join(' ').toUpperCase() ?? '—'}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                      <p className="text-xs text-gray-500 font-medium uppercase mb-1">Frequência de Uso</p>
+                      <p className="text-sm text-green-400 font-semibold">
+                        {response.answers.frequencia?.split('_').slice(0, 2).join(' ').toUpperCase() ?? '—'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Card Actions */}
+                  <div className="px-6 py-4 bg-gray-900/30 border-t border-gray-700/50 flex gap-3">
+                    <button
+                      onClick={() => handleView(response)}
+                      className="flex-1 py-2 px-3 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg font-medium text-sm transition-all hover:border-blue-500/60 hover:shadow-lg hover:shadow-blue-500/10"
+                    >
+                      👁️ Ver
+                    </button>
+                    <button
+                      onClick={() => handleEdit(response.id)}
+                      className="flex-1 py-2 px-3 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg font-medium text-sm transition-all hover:border-amber-500/60 hover:shadow-lg hover:shadow-amber-500/10"
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedResponseId(response.id)
+                        setShowDeleteModal(true)
+                      }}
+                      className="flex-1 py-2 px-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 rounded-lg font-medium text-sm transition-all hover:border-red-500/60 hover:shadow-lg hover:shadow-red-500/10"
+                    >
+                      🗑️ Deletar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Modal de Confirmação de Exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl max-w-sm w-full shadow-2xl">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-white mb-2">Deletar Projeto?</h2>
+              <p className="text-gray-400 mb-6">
+                Esta ação não pode ser desfeita. O projeto e todas as suas respostas serão permanentemente removidos.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 py-2 px-4 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg font-medium transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 py-2 px-4 bg-red-500 text-white hover:bg-red-600 rounded-lg font-medium transition-colors"
+                >
+                  Deletar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

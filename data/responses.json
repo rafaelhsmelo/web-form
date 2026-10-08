@@ -9,5 +9,27 @@
     },
     "createdAt": "2026-10-08T12:28:37.546Z",
     "updatedAt": "2026-10-08T12:28:37.546Z"
+  },
+  {
+    "id": "7e7cfc72-88a9-4df3-b3a3-08225482fa71",
+    "userId": "tags28sqkmuzjvxdy",
+    "answers": {
+      "unidade": "casa_01",
+      "uso_principal": "fim_de_semana",
+      "frequencia": "duas_tres_mes"
+    },
+    "createdAt": "2026-10-08T13:08:32.316Z",
+    "updatedAt": "2026-10-08T13:08:32.316Z"
+  },
+  {
+    "id": "ac5567e9-ca15-43ac-bdbb-a29b196c29c5",
+    "userId": "tags28sqkmuzjvxdy",
+    "answers": {
+      "unidade": "casa_03",
+      "uso_principal": "moradia_permanente",
+      "frequencia": "todos_dias"
+    },
+    "createdAt": "2026-10-08T13:08:50.646Z",
+    "updatedAt": "2026-10-08T13:24:22.410Z"
   }
 ]

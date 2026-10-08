@@ -1,155 +1,298 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { questions } from "@/data/questions";
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 
 export default function Home() {
-  // 1. Definição dos Estados
-  const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const router = useRouter()
+  const { user, login, signup, error, isLoading } = useAuth()
 
-  // 2.Variável de apoio para a pergunta da vez
-  const question = questions[currentStep];
+  const [tab, setTab] = useState<'login' | 'signup'>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
 
-  // Calcula a porcentafem da barra de progresso
-  const progressPercentage = ((currentStep + 1) / questions.length) * 100;
-
-  // Verifica se existe uma resposta grava para o ID da pergunta atual
-  const hasAnsweredCurrent = answers[question.id] !== undefined;
-
-  // 3. Funções de interação e navegação
-  const handleSelectOption = (optionId: string) => {
-    setAnswers({
-      ...answers,
-      [question.id]: optionId,
-    });
-  };
-
-  const handlePrevious = () => {
-    setCurrentStep(currentStep - 1);
-  };
-
-  const handleNext = () => {
-    if (currentStep < questions.length - 1) {
-      setCurrentStep(currentStep + 1);
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard')
     }
-  };
+  }, [user, router])
+
+  if (user) return null
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    await login(email, password)
+    if (!error) {
+      setEmail('')
+      setPassword('')
+    }
+  }
+
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault()
+    await signup(email, password, name)
+    if (!error) {
+      setEmail('')
+      setPassword('')
+      setName('')
+      setTab('login')
+    }
+  }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      {/* Contêiner Principal do Card */}
-      <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-3xl">
-        {/* --- CABEÇALHO --- */}
-        <div className="mb-8">
-          {/* Progresso visual */}
-          <div className="flex flex-col gap-2 mb-6">
-            {/* Texto do progresso */}
-            <div className="flex justify-between text-sm font-medium text-gray-400 uppercase tracking-wider">
-              <span>
-                Passo {currentStep + 1} de {questions.length}
-              </span>
-              <span>{Math.round(progressPercentage)}%</span>
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Padrão geométrico de fundo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-10 w-72 h-72 bg-green-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Container Principal */}
+      <div className="relative z-10 w-full max-w-5xl">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-0">
+          {/* Seção Esquerda: Branding */}
+          <div className="hidden lg:flex flex-col justify-center items-center text-white px-8">
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">🏗️</span>
+                </div>
+                <span className="text-2xl font-bold">ArchiveForm</span>
+              </div>
             </div>
 
-            {/* Barra de progresso */}
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden block">
-              {/* Preenchimento do progresso */}
-              <div
-                className="h-full bg-black transition-all duration-500 ease-out"
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
+            <div className="space-y-4 text-center">
+              <h2 className="text-4xl font-bold leading-tight">
+                Projetos Residenciais
+                <br />
+                Profissionais
+              </h2>
+              <p className="text-lg text-gray-300">
+                Planeje, organize e acompanhe cada detalhe de seus projetos de residência com precisão e elegância.
+              </p>
+            </div>
+
+            {/* Features */}
+            <div className="mt-12 space-y-4 w-full max-w-sm">
+              <div className="flex gap-3 items-start">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex-shrink-0 mt-0.5"></div>
+                <span className="text-gray-300">Gestão completa de projetos</span>
+              </div>
+              <div className="flex gap-3 items-start">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex-shrink-0 mt-0.5"></div>
+                <span className="text-gray-300">Respostas organizadas e acessíveis</span>
+              </div>
+              <div className="flex gap-3 items-start">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex-shrink-0 mt-0.5"></div>
+                <span className="text-gray-300">Interface intuitiva e moderna</span>
+              </div>
             </div>
           </div>
 
-          {/* Título */}
-          <h2 className="text-3xl font-semibold text-gray-800 mt-2">
-            {question.title}
-          </h2>
+          {/* Seção Direita: Formulário */}
+          <div className="flex items-center justify-center">
+            <div className="w-full max-w-md">
+              {/* Card Principal */}
+              <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
+                {/* Tabs */}
+                <div className="flex gap-1 mb-8 bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setTab('login')}
+                    className={`flex-1 py-3 px-4 rounded-md font-semibold transition-all duration-300 ${
+                      tab === 'login'
+                        ? 'bg-white text-green-600 shadow-md'
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    Entrar
+                  </button>
+                  <button
+                    onClick={() => setTab('signup')}
+                    className={`flex-1 py-3 px-4 rounded-md font-semibold transition-all duration-300 ${
+                      tab === 'signup'
+                        ? 'bg-white text-green-600 shadow-md'
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    Cadastro
+                  </button>
+                </div>
 
-          {/* Subtítulo */}
-          {question.subtitle && (
-            <p className="text-gray-500 mt-2">{question.subtitle}</p>
-          )}
-        </div>
-
-        {/* --- OPÇÕES DE RESPOSTA --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* Percorre a lista de opções da pergunta atual */}
-          {question.options.map((option) => {
-            // Verifica se a respost guardada para a pergunta é igual a este botão
-            const isSelected = answers[question.id] === option.id;
-
-            return (
-              <button
-                key={option.id}
-                onClick={() => handleSelectOption(option.id)}
-                // CORREÇÃO: Adicionado 'flex' e corrigido 'items-center' (com hífen)
-                className={`p-4 border rounded-xl text-left transition-all flex items-center w-full gap-4 ${
-                  isSelected
-                    ? "border-black bg-gray-50 ring-2 ring-black"
-                    : "border-gray-200 hover:border-gray-400"
-                }`}
-              >
-                {/* Renderiza imagem da opção, se houver */}
-                {option.imageUrl && (
-                  <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={option.imageUrl}
-                      alt={option.label}
-                      className="w-full h-full object-cover rounded-lg border border-gray-200"
-                    />
+                {/* Erro */}
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm animate-shake">
+                    <div className="font-semibold">Erro</div>
+                    <div>{error}</div>
                   </div>
                 )}
 
-                <div className="flex flex-col flex-grow">
-                  <span
-                    className={`font-medium ${isSelected ? "text-black" : "text-gray-700"}`}
-                  >
-                    {option.label}
-                  </span>
-
-                  {/* Renderiza um ✓ na opção selectionada */}
-                  {isSelected && (
-                    <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                      <span className="text-white text-[10px]">✓</span>
+                {/* Login Form */}
+                {tab === 'login' && (
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                          ✉️
+                        </span>
+                        <input
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                          required
+                        />
+                      </div>
                     </div>
-                  )}
 
-                  {/* Renderiza descrição da opção, se houver */}
-                  {option.description && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      {option.description}
-                    </p>
-                  )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Senha
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                          🔒
+                        </span>
+                        <input
+                          type="password"
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      {isLoading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                          Entrando...
+                        </span>
+                      ) : (
+                        'Entrar'
+                      )}
+                    </button>
+
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        className="text-sm text-gray-600 hover:text-green-600 font-medium transition-colors"
+                        onClick={() => alert('Recurso em desenvolvimento')}
+                      >
+                        Esqueci minha senha
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Signup Form */}
+                {tab === 'signup' && (
+                  <form onSubmit={handleSignup} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nome Completo
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                          👤
+                        </span>
+                        <input
+                          type="text"
+                          placeholder="Seu nome"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                          ✉️
+                        </span>
+                        <input
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Senha
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                          🔒
+                        </span>
+                        <input
+                          type="password"
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      {isLoading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                          Cadastrando...
+                        </span>
+                      ) : (
+                        'Cadastrar'
+                      )}
+                    </button>
+                  </form>
+                )}
+
+                {/* Footer */}
+                <div className="mt-8 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
+                  Plataforma segura para arquitetos e designers
                 </div>
-              </button>
-            );
-          })}
-        </div>
+              </div>
 
-        {/* --- RODAPÉ E NAVEGAÇÃO --- */}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
-          {/* Botão de voltar */}
-          <button
-            onClick={handlePrevious}
-            disabled={currentStep === 0}
-            className="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed font-medium transition-colors"
-          >
-            ← Voltar
-          </button>
-
-          {/* Botão de avançar */}
-          {hasAnsweredCurrent && (
-            <button
-              onClick={handleNext}
-              className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 font-medium transition-colors"
-            >
-              {currentStep === questions.length - 1 ? "Finalizar" : "Avançar →"}
-            </button>
-          )}
+              {/* Mobile: Logo */}
+              <div className="lg:hidden text-center mt-6">
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold">🏗️</span>
+                  </div>
+                  <span className="text-xl font-bold text-white">ArchiveForm</span>
+                </div>
+                <p className="text-gray-400 text-sm">Projetos Residenciais Profissionais</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
-  );
+  )
 }

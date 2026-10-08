@@ -241,13 +241,13 @@ export default function Dashboard() {
                           <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
                             <p className="text-xs text-gray-500 font-medium uppercase">Unidade</p>
                             <p className="text-sm text-green-400 font-semibold mt-1">
-                              {response.answers.unidade ? response.answers.unidade.split('_').pop().toUpperCase() : '—'}
+                              {response.answers.unidade?.split('_').pop()?.toUpperCase() ?? '—'}
                             </p>
                           </div>
                           <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
                             <p className="text-xs text-gray-500 font-medium uppercase">Uso Principal</p>
                             <p className="text-sm text-green-400 font-semibold mt-1">
-                              {response.answers.uso_principal ? response.answers.uso_principal.split('_').slice(0, 2).join(' ').toUpperCase() : '—'}
+                              {response.answers.uso_principal?.split('_').slice(0, 2).join(' ').toUpperCase() ?? '—'}
                             </p>
                           </div>
                           <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">

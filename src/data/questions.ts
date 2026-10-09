@@ -17,7 +17,7 @@ export type question ={
 
 // Matriz das perguntas e opções (lista do cliente)
 // 1. IDENTIFICAÇÃO
-export const questions: question[] = [
+const perguntasResidencia: question[] = [
   {
     id: "unidade",
     title: "Qual é a sua unidade no condomínio?",
@@ -61,3 +61,10 @@ export const questions: question[] = [
     ],
   }
 ];
+// Agrupa as perguntas por questionario (RN002: o token define qual usar)
+export const questionarios: Record<string, question[]> = {
+  residencia: perguntasResidencia,
+};
+
+// Mantido enquanto o formulario atual (page.tsx) ainda usa a lista direta
+export const questions = perguntasResidencia;

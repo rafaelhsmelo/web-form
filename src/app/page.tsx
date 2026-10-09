@@ -171,6 +171,27 @@ export default function Home() {
     }
   };
 
+  const handleExit = async () => {
+    if (isSaving || isSubmitting || isRestarting) return;
+
+    if (Object.keys(answers).length > 0 || status === "EM_PREENCHIMENTO") {
+      const saved = await persistProgress(answers, currentStep);
+      if (!saved) return;
+    }
+
+    sessionStorage.removeItem("questionnaireToken");
+    setTokenInput("");
+    setTokenValidated(false);
+    setShowQuestionnaire(false);
+    setIsReviewing(false);
+    setStatus(null);
+    setAnswers({});
+    setCurrentStep(0);
+    setPendingSave(null);
+    setSaveError("");
+    setSubmitError("");
+  };
+
   // 2.Variável de apoio para a pergunta da vez
   const question = questions[currentStep];
 
@@ -376,7 +397,12 @@ export default function Home() {
               {submitError}
             </p>
           )}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between">
+          {saveError && (
+            <p role="alert" className="mt-6 text-sm text-red-600">
+              {saveError}
+            </p>
+          )}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-between">
             <button
               onClick={() => {
                 setSubmitError("");
@@ -388,8 +414,15 @@ export default function Home() {
               Voltar e editar
             </button>
             <button
+              onClick={() => void handleExit()}
+              disabled={isSaving || isSubmitting}
+              className="rounded-full border border-gray-300 px-6 py-3 font-medium text-gray-700 disabled:opacity-50"
+            >
+              Sair
+            </button>
+            <button
               onClick={() => void handleRestart()}
-              disabled={isSubmitting || isRestarting}
+              disabled={isSaving || isSubmitting || isRestarting}
               className="rounded-full border border-gray-300 px-6 py-3 font-medium text-gray-700 disabled:opacity-50"
             >
               Limpar respostas
@@ -586,10 +619,18 @@ export default function Home() {
           {/* Botão de voltar */}
           <button
             onClick={() => void handlePrevious()}
-            disabled={currentStep === 0 || isSaving}
+            disabled={currentStep === 0 || isSaving || isSubmitting}
             className="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed font-medium transition-colors"
           >
             ← Voltar
+          </button>
+
+          <button
+            onClick={() => void handleExit()}
+            disabled={isSaving || isSubmitting}
+            className="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed font-medium transition-colors"
+          >
+            Sair
           </button>
 
           {/* Botão de avançar */}

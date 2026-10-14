@@ -23,10 +23,13 @@ export async function GET(request: Request) {
     const respostasBanco = result.rows;
 
     if (respostasBanco.length === 0) {
-      return NextResponse.json({ error: "Nenhuma resposta finalizada encontrada." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Nenhuma resposta finalizada encontrada." },
+        { status: 404 },
+      );
     }
 
-    const titulosPerguntas = perguntas.map(p => p.title.replace(/,/g, "")); 
+    const titulosPerguntas = perguntas.map((p) => p.title.replace(/,/g, ""));
     const cabecalho = ["Token", ...titulosPerguntas].join(",") + "\n";
 
     let linhas = "";
@@ -34,11 +37,11 @@ export async function GET(request: Request) {
     for (const row of respostasBanco) {
       const tokenId = row.token_id as string;
       const dadosJson = row.dados_resposta as string;
-      
+
       let respostasUsuario: Record<string, string> = {};
       try {
         respostasUsuario = JSON.parse(dadosJson);
-      } catch (e) {
+      } catch {
         continue;
       }
 
@@ -46,12 +49,13 @@ export async function GET(request: Request) {
 
       for (const pergunta of perguntas) {
         const idOpcaoEscolhida = respostasUsuario[pergunta.id];
-        
-        const opcaoTexto = idOpcaoEscolhida 
-          ? pergunta.options.find(opt => opt.id === idOpcaoEscolhida)?.label || "N/A"
+
+        const opcaoTexto = idOpcaoEscolhida
+          ? pergunta.options.find((opt) => opt.id === idOpcaoEscolhida)
+              ?.label || "N/A"
           : "";
-        
-        linhaUsuario.push(opcaoTexto.replace(/,/g, "")); 
+
+        linhaUsuario.push(opcaoTexto.replace(/,/g, ""));
       }
 
       linhas += linhaUsuario.join(",") + "\n";
@@ -66,8 +70,10 @@ export async function GET(request: Request) {
         "Content-Disposition": 'attachment; filename="respostas_completas.csv"',
       },
     });
-
-  } catch (error) {
-    return NextResponse.json({ error: "Erro ao exportar dados." }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "Erro ao exportar dados." },
+      { status: 500 },
+    );
   }
 }

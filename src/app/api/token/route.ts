@@ -1,5 +1,6 @@
-import { questionarios } from "@/data/questions";
+import { NextResponse } from "next/server";
 import { findToken, getRegistro } from "@/lib/storage";
+import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -33,18 +34,20 @@ export async function POST(request: Request) {
     return Response.json({ error: "Token inválido." }, { status: 404 });
   }
 
-  const perguntas = questionarios[tokenInfo.questionarioId];
+  const perguntas = loadQuestionsFromCSV();
 
-  if (!perguntas) {
+  if (perguntas.length === 0) {
     return Response.json(
-      { error: "O questionário associado ao token não está configurado." },
+      {
+        error: `Nenhuma pergunta está configurada para o questionário "${tokenInfo.questionarioId}".`,
+      },
       { status: 500 },
     );
   }
 
   const registro = await getRegistro(token);
 
-  return Response.json({
+  const response = NextResponse.json({
     token,
     questionarioId: tokenInfo.questionarioId,
     status: registro?.status ?? "NAO_INICIADO",
@@ -52,4 +55,17 @@ export async function POST(request: Request) {
     answers: registro?.answers ?? {},
     perguntas,
   });
+  response.cookies.set("questionnaireToken", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
+  return response;
+}
+
+export async function DELETE() {
+  const response = NextResponse.json({ message: "Sessão encerrada." });
+  response.cookies.delete("questionnaireToken");
+  return response;
 }

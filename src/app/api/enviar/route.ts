@@ -1,45 +1,17 @@
-import { questionarios } from "@/data/questions";
-import { finalize, findToken, getRegistro } from "@/lib/storage";
+import { finalize, getRegistro } from "@/lib/storage";
+import { getAuthenticatedToken } from "@/lib/auth";
+import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
-function isTokenBody(value: unknown): value is { token: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "token" in value &&
-    typeof value.token === "string" &&
-    value.token.trim().length > 0
-  );
-}
-
-export async function POST(request: Request) {
-  let body: unknown;
-
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json(
-      { error: "O corpo da requisição deve conter um JSON válido." },
-      { status: 400 },
-    );
+export async function POST() {
+  const token = await getAuthenticatedToken();
+  if (!token) {
+    return Response.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
-  if (!isTokenBody(body)) {
+  const perguntas = loadQuestionsFromCSV();
+  if (perguntas.length === 0) {
     return Response.json(
-      { error: "Informe um token válido." },
-      { status: 400 },
-    );
-  }
-
-  const token = body.token.trim();
-  const tokenInfo = await findToken(token);
-  if (!tokenInfo) {
-    return Response.json({ error: "Token inválido." }, { status: 404 });
-  }
-
-  const perguntas = questionarios[tokenInfo.questionarioId];
-  if (!perguntas) {
-    return Response.json(
-      { error: "O questionário associado ao token não está configurado." },
+      { error: "Nenhuma pergunta está configurada." },
       { status: 500 },
     );
   }

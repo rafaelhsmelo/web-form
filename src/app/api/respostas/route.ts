@@ -1,36 +1,11 @@
-import { questionarios } from "@/data/questions";
-import { discardProgress, findToken, saveProgress } from "@/lib/storage";
+import { discardProgress, saveProgress } from "@/lib/storage";
+import { getAuthenticatedToken } from "@/lib/auth";
+import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
-export async function DELETE(request: Request) {
-  let body: unknown;
-
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json(
-      { error: "O corpo da requisição deve conter um JSON válido." },
-      { status: 400 },
-    );
-  }
-
-  if (
-    typeof body !== "object" ||
-    body === null ||
-    !("token" in body) ||
-    typeof body.token !== "string" ||
-    body.token.trim().length === 0
-  ) {
-    return Response.json(
-      { error: "Informe um token válido." },
-      { status: 400 },
-    );
-  }
-
-  const token = body.token.trim();
-  const tokenInfo = await findToken(token);
-
-  if (!tokenInfo) {
-    return Response.json({ error: "Token inválido." }, { status: 404 });
+export async function DELETE() {
+  const token = await getAuthenticatedToken();
+  if (!token) {
+    return Response.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
   try {
@@ -69,9 +44,6 @@ export async function PUT(request: Request) {
   if (
     typeof body !== "object" ||
     body === null ||
-    !("token" in body) ||
-    typeof body.token !== "string" ||
-    body.token.trim().length === 0 ||
     !("answers" in body) ||
     !isAnswers(body.answers) ||
     !("currentStep" in body) ||
@@ -80,23 +52,21 @@ export async function PUT(request: Request) {
     body.currentStep < 0
   ) {
     return Response.json(
-      { error: "Token, respostas ou etapa atual inválidos." },
+      { error: "Respostas ou etapa atual inválidas." },
       { status: 400 },
     );
   }
 
-  const token = body.token.trim();
-  const tokenInfo = await findToken(token);
-
-  if (!tokenInfo) {
-    return Response.json({ error: "Token inválido." }, { status: 404 });
+  const token = await getAuthenticatedToken();
+  if (!token) {
+    return Response.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
-  const perguntas = questionarios[tokenInfo.questionarioId];
+  const perguntas = loadQuestionsFromCSV();
 
-  if (!perguntas) {
+  if (perguntas.length === 0) {
     return Response.json(
-      { error: "O questionário associado ao token não está configurado." },
+      { error: "Nenhuma pergunta está configurada." },
       { status: 500 },
     );
   }

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Token inválido." }, { status: 404 });
   }
 
-  const perguntas = loadQuestionsFromCSV();
+  const perguntas = loadQuestionsFromCSV(tokenInfo.questionarioId);
 
   if (perguntas.length === 0) {
     return Response.json(

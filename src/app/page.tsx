@@ -13,7 +13,7 @@ export default async function Home() {
     return <LoginToken />;
   }
 
-  const questions = loadQuestionsFromCSV();
+  const questions = loadQuestionsFromCSV(tokenInfo.questionarioId);
   const registration = await getRegistro(token);
 
   return (

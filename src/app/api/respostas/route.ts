@@ -1,13 +1,14 @@
 import { discardProgress, saveProgress } from "@/lib/storage";
-import { getAuthenticatedToken } from "@/lib/auth";
+import { getAuthenticatedTokenInfo } from "@/lib/auth";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
 export async function DELETE() {
-  const token = await getAuthenticatedToken();
-  if (!token) {
+  const tokenInfo = await getAuthenticatedTokenInfo();
+  if (!tokenInfo) {
     return Response.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
+  const token = tokenInfo.token;
   try {
     await discardProgress(token);
   } catch (error) {
@@ -57,16 +58,19 @@ export async function PUT(request: Request) {
     );
   }
 
-  const token = await getAuthenticatedToken();
-  if (!token) {
+  const tokenInfo = await getAuthenticatedTokenInfo();
+  if (!tokenInfo) {
     return Response.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
-  const perguntas = loadQuestionsFromCSV();
+  const token = tokenInfo.token;
+  const perguntas = loadQuestionsFromCSV(tokenInfo.questionarioId);
 
   if (perguntas.length === 0) {
     return Response.json(
-      { error: "Nenhuma pergunta está configurada." },
+      {
+        error: `Nenhuma pergunta está configurada para o questionário "${tokenInfo.questionarioId}".`,
+      },
       { status: 500 },
     );
   }

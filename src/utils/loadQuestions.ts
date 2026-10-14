@@ -32,7 +32,7 @@ interface CsvRow {
   option_image?: string;
 }
 
-export function loadQuestionsFromCSV(questionnaireId?: string): Question[] {
+export function loadQuestionsFromCSV(questionnaireId: string): Question[] {
   const filePath = path.join(process.cwd(), "src", "data", "questions.csv");
   const fileContent = fs.readFileSync(filePath, "utf-8");
 
@@ -46,7 +46,7 @@ export function loadQuestionsFromCSV(questionnaireId?: string): Question[] {
   }
 
   const rows = (parsed.data as CsvRow[]).filter(
-    (row) => !questionnaireId || row.questionnaire_id === questionnaireId,
+    (row) => row.questionnaire_id === questionnaireId,
   );
   const questionMap: { [key: string]: Question } = {};
 

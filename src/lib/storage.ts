@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import { Registro, Status, TokenInfo } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_DIR = path.join(process.cwd(), "src", "data");
 const TOKENS_FILE = path.join(DATA_DIR, "arquivo.json");
 const RESPOSTAS_FILE = path.join(DATA_DIR, "respostas.json");
 

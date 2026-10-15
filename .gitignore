@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# respostas dos usuarios (dados em runtime)
+/data/respostas.json
+/data/*.tmp

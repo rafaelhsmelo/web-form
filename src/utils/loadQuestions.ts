@@ -21,6 +21,7 @@ export type Question = {
 };
 
 interface CsvRow {
+  questionnaire_id: string;
   section_id: string;
   section_title: string;
   question_id: string;
@@ -31,8 +32,7 @@ interface CsvRow {
   option_image?: string;
 }
 
-// Função Parse e agrupamento
-export function loadQuestionsFromCSV(): Question[] {
+export function loadQuestionsFromCSV(questionnaireId: string): Question[] {
   const filePath = path.join(process.cwd(), "src", "data", "questions.csv");
   const fileContent = fs.readFileSync(filePath, "utf-8");
 
@@ -41,10 +41,22 @@ export function loadQuestionsFromCSV(): Question[] {
     skipEmptyLines: true,
   });
 
-  const rows = parsed.data as CsvRow[];
+  if (parsed.errors.length > 0) {
+    throw new Error(`Erro ao interpretar o CSV de perguntas: ${parsed.errors[0].message}`);
+  }
+
+  const rows = (parsed.data as CsvRow[]).filter(
+    (row) => row.questionnaire_id === questionnaireId,
+  );
   const questionMap: { [key: string]: Question } = {};
 
   rows.forEach((row) => {
+    if (!row.question_id) {
+      throw new Error(
+        `Pergunta sem identificador no questionário "${questionnaireId}".`,
+      );
+    }
+
     if (!questionMap[row.question_id]) {
       questionMap[row.question_id] = {
         id: row.question_id,

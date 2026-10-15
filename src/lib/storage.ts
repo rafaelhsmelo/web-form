@@ -9,6 +9,13 @@ const RESPOSTAS_FILE = path.join(DATA_DIR, "respostas.json");
 
 type Respostas = Record<string, Registro>;
 
+export type FinalizedSubmission = {
+  token: string;
+  questionarioId: string;
+  finalizedAt: string;
+  answers: Record<string, string>;
+};
+
 async function readRespostas(): Promise<Respostas> {
   try {
     return JSON.parse(await fs.readFile(RESPOSTAS_FILE, "utf-8"));
@@ -36,6 +43,42 @@ export async function findToken(token: string): Promise<TokenInfo | null> {
 export async function getRegistro(token: string): Promise<Registro | null> {
   const respostas = await readRespostas();
   return respostas[token] ?? null;
+}
+
+export async function getFinalizedSubmissions(): Promise<FinalizedSubmission[]> {
+  const [respostas, tokenFileContent] = await Promise.all([
+    readRespostas(),
+    fs.readFile(TOKENS_FILE, "utf-8"),
+  ]);
+  const tokenFile = JSON.parse(tokenFileContent) as { tokens: TokenInfo[] };
+  const tokensByValue = new Map(
+    tokenFile.tokens.map((tokenInfo) => [tokenInfo.token, tokenInfo]),
+  );
+
+  return Object.entries(respostas)
+    .filter(([, registro]) => registro.status === "FINALIZADO")
+    .map(([token, registro]) => {
+      const tokenInfo = tokensByValue.get(token);
+      if (!tokenInfo) {
+        throw new Error(
+          `O questionário finalizado do token "${token}" não possui configuração correspondente.`,
+        );
+      }
+      if (!registro.finalizedAt) {
+        throw new Error(
+          `O questionário finalizado do token "${token}" não possui data de envio.`,
+        );
+      }
+      return {
+        token,
+        questionarioId: tokenInfo.questionarioId,
+        finalizedAt: registro.finalizedAt,
+        answers: registro.answers,
+      };
+    })
+    .sort((first, second) =>
+      second.finalizedAt.localeCompare(first.finalizedAt),
+    );
 }
 
 export async function getStatus(token: string): Promise<Status> {

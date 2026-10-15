@@ -5,14 +5,14 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get("key");
+  const idQuestionario = searchParams.get("id") || "1";
 
   if (key !== process.env.ADMIN_KEY) {
     return NextResponse.json({ error: "Acesso negado." }, { status: 401 });
   }
 
   try {
-    const perguntas = loadQuestionsFromCSV();
-
+const perguntas = loadQuestionsFromCSV(idQuestionario);
     const result = await turso.execute(`
       SELECT r.token_id, r.dados_resposta 
       FROM respostas r

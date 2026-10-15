@@ -1,11 +1,33 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import path from "node:path";
 import { cookies } from "next/headers";
 
 export const ADMIN_SESSION_COOKIE = "adminSession";
 
+let envFileLoaded = false;
+
 function getAdminToken(): string | null {
-  const token = process.env.ADMIN_TOKEN;
+  if (!envFileLoaded) {
+    try {
+      process.loadEnvFile(path.join(process.cwd(), "env.local"));
+    } catch (error) {
+      if (
+        !(error instanceof Error) ||
+        !("code" in error) ||
+        error.code !== "ENOENT"
+      ) {
+        throw error;
+      }
+    }
+    envFileLoaded = true;
+  }
+
+  const token = process.env.ADMIN_KEY;
   return token?.trim() ? token.trim() : null;
+}
+
+export function isAdminTokenConfigured(): boolean {
+  return getAdminToken() !== null;
 }
 
 function valuesMatch(first: string, second: string): boolean {
@@ -42,7 +64,7 @@ export async function hasAdminSession(): Promise<boolean> {
 export function getNewAdminSessionValue(): string {
   const token = getAdminToken();
   if (!token) {
-    throw new Error("A variável ADMIN_TOKEN não está configurada.");
+    throw new Error("A chave ADMIN_KEY não está configurada.");
   }
   return createAdminSessionValue(token);
 }

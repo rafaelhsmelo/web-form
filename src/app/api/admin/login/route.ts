@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   ADMIN_SESSION_COOKIE,
   getNewAdminSessionValue,
+  isAdminTokenConfigured,
   isValidAdminToken,
 } from "@/lib/adminAuth";
 
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!process.env.ADMIN_TOKEN?.trim()) {
+  if (!isAdminTokenConfigured()) {
     return Response.json(
       { error: "A autenticação administrativa não está configurada." },
       { status: 503 },

@@ -20,6 +20,27 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Acesso administrativo
+
+Configure `ADMIN_KEY` no arquivo `env.local`, na raiz do projeto, antes de
+iniciar a aplicação:
+
+```dotenv
+ADMIN_KEY=<defina-um-token-secreto-e-forte>
+```
+
+O servidor carrega essa chave ao autenticar o administrador. Mantenha o arquivo
+fora do repositório. Para rotacionar a chave, altere o valor e reinicie ou
+reimplante a aplicação. A sessão administrativa usa um cookie HTTP-only de
+sessão do navegador e também pode ser encerrada pelo botão **Encerrar sessão**
+no dashboard.
+
+O dashboard em `/admin` lista somente formulários com estado `FINALIZADO`.
+**Baixar formulários (CSV)** exporta uma linha por envio, com os identificadores
+do formulário, a data de finalização e uma coluna para cada pergunta. As
+respostas são apresentadas pelo rótulo da opção; se a pergunta ou opção não
+estiver mais configurada, o identificador persistido é preservado no arquivo.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

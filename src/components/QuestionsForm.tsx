@@ -118,7 +118,7 @@ export default function QuestionsForm({
   const handleExit = async () => {
     if (isSaving || isSubmitting || isRestarting) return;
 
-    if (Object.keys(answers).length > 0 || status === "EM_PREENCHIMENTO") {
+    if (status === "EM_PREENCHIMENTO") {
       const saved = await persistProgress(answers, currentStep);
       if (!saved) return;
     }

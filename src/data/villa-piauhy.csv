@@ -1,0 +1,27 @@
+questionnaire_id,section_num,section_id,section_title,question_num,question_id,question_title,question_subtitle,option_id,option_label,option_image
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,1,unidade,Qual é a sua unidade no condomínio?,Selecione a casa correspondente à sua propriedade.,casa_01,Casa 01,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,1,unidade,Qual é a sua unidade no condomínio?,Selecione a casa correspondente à sua propriedade.,casa_02,Casa 02,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,1,unidade,Qual é a sua unidade no condomínio?,Selecione a casa correspondente à sua propriedade.,casa_03,Casa 03,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,1,unidade,Qual é a sua unidade no condomínio?,Selecione a casa correspondente à sua propriedade.,casa_04,Casa 04,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,1,unidade,Qual é a sua unidade no condomínio?,Selecione a casa correspondente à sua propriedade.,casa_05,Casa 05,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,1,unidade,Qual é a sua unidade no condomínio?,Selecione a casa correspondente à sua propriedade.,casa_06,Casa 06,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,1,unidade,Qual é a sua unidade no condomínio?,Selecione a casa correspondente à sua propriedade.,casa_07,Casa 07,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,1,unidade,Qual é a sua unidade no condomínio?,Selecione a casa correspondente à sua propriedade.,casa_08,Casa 08,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,2,uso_principal,Qual será o principal uso da residência?,,moradia_permanente,Moradia permanente,https://placehold.co/400x300?text=Moradia
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,2,uso_principal,Qual será o principal uso da residência?,,fim_de_semana,Casa de fim de semana,https://placehold.co/400x300?text=Fim+de+Semana
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,2,uso_principal,Qual será o principal uso da residência?,,ferias,Casa de férias,https://placehold.co/400x300?text=Ferias
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,2,uso_principal,Qual será o principal uso da residência?,,uso_eventual,Uso eventual pela família,https://placehold.co/400x300?text=Eventual
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,2,uso_principal,Qual será o principal uso da residência?,,locacao,Uso para locação por temporada,https://placehold.co/400x300?text=Locacao
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,2,uso_principal,Qual será o principal uso da residência?,,misto,Uso misto: família e locação,https://placehold.co/400x300?text=Misto
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,3,frequencia,Com que frequência você imagina utilizar a casa?,,todos_dias,Todos os dias,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,3,frequencia,Com que frequência você imagina utilizar a casa?,,todos_finais_semana,Todos os finais de semana,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,3,frequencia,Com que frequência você imagina utilizar a casa?,,duas_tres_mes,Duas ou três vezes por mês,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,3,frequencia,Com que frequência você imagina utilizar a casa?,,uma_vez_mes,Uma vez por mês,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,3,frequencia,Com que frequência você imagina utilizar a casa?,,apenas_ferias,Apenas em férias e feriados,
+villa-piauhy,1,identificacao,1. IDENTIFICAÇÃO,3,frequencia,Com que frequência você imagina utilizar a casa?,,esporadicamente,Esporadicamente,
+villa-piauhy,2,perfil_usuarios,2. PERFIL DOS USUÁRIOS,4,pessoas_utilizarao,Quantas pessoas utilizarão normalmente a residência?,,1_pessoa,1 pessoa,
+villa-piauhy,2,perfil_usuarios,2. PERFIL DOS USUÁRIOS,4,pessoas_utilizarao,Quantas pessoas utilizarão normalmente a residência?,,2_pessoas,2 pessoas,
+villa-piauhy,2,perfil_usuarios,2. PERFIL DOS USUÁRIOS,4,pessoas_utilizarao,Quantas pessoas utilizarão normalmente a residência?,,3_pessoas,3 pessoas,
+villa-piauhy,2,perfil_usuarios,2. PERFIL DOS USUÁRIOS,4,pessoas_utilizarao,Quantas pessoas utilizarão normalmente a residência?,,4_pessoas,4 pessoas,
+villa-piauhy,2,perfil_usuarios,2. PERFIL DOS USUÁRIOS,4,pessoas_utilizarao,Quantas pessoas utilizarão normalmente a residência?,,5_pessoas,5 pessoas,
+villa-piauhy,2,perfil_usuarios,2. PERFIL DOS USUÁRIOS,4,pessoas_utilizarao,Quantas pessoas utilizarão normalmente a residência?,,6_mais_pessoas,6 pessoas ou mais,

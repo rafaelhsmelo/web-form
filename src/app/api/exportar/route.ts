@@ -5,20 +5,31 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get("key");
-  const idQuestionario = searchParams.get("id") || "1";
+  const idQuestionario = searchParams.get("id");
 
   if (key !== process.env.ADMIN_KEY) {
     return NextResponse.json({ error: "Acesso negado." }, { status: 401 });
   }
 
+  if (!idQuestionario) {
+    return NextResponse.json(
+      { error: "Informe o ID do questionário." },
+      { status: 400 },
+    );
+  }
+
   try {
-const perguntas = loadQuestionsFromCSV(idQuestionario);
-    const result = await turso.execute(`
-      SELECT r.token_id, r.dados_resposta 
+    const perguntas = loadQuestionsFromCSV(idQuestionario);
+    const result = await turso.execute({
+      sql: `
+      SELECT r.token, r.answers
       FROM respostas r
-      JOIN tokens t ON r.token_id = t.id
-      WHERE t.status = 'FINALIZADO'
-    `);
+      JOIN tokens t ON r.token = t.token
+      WHERE r.status = 'FINALIZADO'
+        AND t.questionarioId = ?
+    `,
+      args: [idQuestionario],
+    });
 
     const respostasBanco = result.rows;
 
@@ -35,8 +46,8 @@ const perguntas = loadQuestionsFromCSV(idQuestionario);
     let linhas = "";
 
     for (const row of respostasBanco) {
-      const tokenId = row.token_id as string;
-      const dadosJson = row.dados_resposta as string;
+      const tokenId = row.token as string;
+      const dadosJson = row.answers as string;
 
       let respostasUsuario: Record<string, string> = {};
       try {

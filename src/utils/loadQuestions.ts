@@ -33,7 +33,7 @@ interface CsvRow {
 }
 
 export function loadQuestionsFromCSV(questionnaireId: string): Question[] {
-  const filePath = path.join(process.cwd(), "src", "data", "questions.csv");
+  const filePath = path.join(process.cwd(), "src", "data", "villa-piauhy.csv");
   const fileContent = fs.readFileSync(filePath, "utf-8");
 
   const parsed = Papa.parse(fileContent, {

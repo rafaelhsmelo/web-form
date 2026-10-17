@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type AdminFormActionsProps = {
@@ -73,14 +74,12 @@ export default function AdminFormActions({
       >
         {isExporting ? "Baixando..." : "Baixar"}
       </button>
-      <button
-        type="button"
-        disabled
-        title="Disponível em breve"
-        className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 disabled:cursor-not-allowed disabled:opacity-60"
+      <Link
+        href={`/admin/forms/${encodeURIComponent(formId)}`}
+        className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700"
       >
-        Detalhes (em breve)
-      </button>
+        Detalhes
+      </Link>
       {error && (
         <p role="alert" className="basis-full text-right text-sm text-red-600">
           {error}

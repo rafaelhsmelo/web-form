@@ -1,20 +1,20 @@
 import { cookies } from "next/headers";
-import LoginToken from "@/components/LoginToken";
+import LoginUser from "@/components/LoginUser";
 import QuestionsForm from "@/components/QuestionsForm";
-import { findToken, getRegistro } from "@/lib/storage";
+import { findUser, getRegistro } from "@/lib/storage";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
 export default async function Home() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("questionnaireToken")?.value;
-  const tokenInfo = token ? await findToken(token) : null;
+  const userId = cookieStore.get("userId")?.value;
+  const userInfo = userId ? await findUser(userId) : null;
 
-  if (!token || !tokenInfo) {
-    return <LoginToken />;
+  if (!userId || !userInfo) {
+    return <LoginUser />;
   }
 
-  const questions = loadQuestionsFromCSV(tokenInfo.questionarioId);
-  const registration = await getRegistro(token);
+  const questions = loadQuestionsFromCSV(userInfo.formId);
+  const registration = await getRegistro(userId);
 
   return (
     <QuestionsForm

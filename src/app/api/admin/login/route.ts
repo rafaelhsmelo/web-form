@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import {
   ADMIN_SESSION_COOKIE,
   getNewAdminSessionValue,
-  isAdminTokenConfigured,
-  isValidAdminToken,
+  isAdminKeyConfigured,
+  isValidAdminKey,
 } from "@/lib/adminAuth";
 
 export async function POST(request: Request) {
@@ -21,26 +21,26 @@ export async function POST(request: Request) {
   if (
     typeof body !== "object" ||
     body === null ||
-    !("token" in body) ||
-    typeof body.token !== "string" ||
-    body.token.trim().length === 0
+    !("adminKey" in body) ||
+    typeof body.adminKey !== "string" ||
+    body.adminKey.trim().length === 0
   ) {
     return Response.json(
-      { error: "Informe um token administrativo válido." },
+      { error: "Informe uma chave administrativa válida." },
       { status: 400 },
     );
   }
 
-  if (!isAdminTokenConfigured()) {
+  if (!isAdminKeyConfigured()) {
     return Response.json(
       { error: "A autenticação administrativa não está configurada." },
       { status: 503 },
     );
   }
 
-  if (!isValidAdminToken(body.token.trim())) {
+  if (!isValidAdminKey(body.adminKey.trim())) {
     return Response.json(
-      { error: "A autenticação não foi realizada. Verifique o token informado." },
+      { error: "A autenticação não foi realizada. Verifique a chave informada." },
       { status: 401 },
     );
   }

@@ -26,7 +26,7 @@ export default function QuestionsForm({
   );
   const [answers, setAnswers] = useState(initialAnswers);
   const [status, setStatus] = useState<Status>(initialStatus);
-  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
@@ -95,7 +95,7 @@ export default function QuestionsForm({
 
       if (!response.ok) {
         throw new Error(
-          data.error ?? "Não foi possível recomeçar o questionário.",
+          data.error ?? "Não foi possível recomeçar o Formulário.",
         );
       }
 
@@ -103,7 +103,7 @@ export default function QuestionsForm({
       setCurrentStep(0);
       setStatus("NAO_INICIADO");
       setIsReviewing(false);
-      setShowQuestionnaire(true);
+      setShowForm(true);
     } catch (restartFailure) {
       setError(
         restartFailure instanceof Error
@@ -124,7 +124,7 @@ export default function QuestionsForm({
     }
 
     try {
-      const response = await fetch("/api/token", { method: "DELETE" });
+      const response = await fetch("/api/userId", { method: "DELETE" });
       const data = (await response.json()) as ApiError;
       if (!response.ok) {
         throw new Error(data.error ?? "Não foi possível encerrar a sessão.");
@@ -192,7 +192,7 @@ export default function QuestionsForm({
 
       if (!response.ok) {
         throw new Error(
-          data.error ?? "Não foi possível enviar o questionário.",
+          data.error ?? "Não foi possível enviar o Formulário.",
         );
       }
 
@@ -214,7 +214,7 @@ export default function QuestionsForm({
       <main className="min-h-screen bg-gray-50 p-4 md:p-8">
         <section className="mx-auto w-full max-w-3xl rounded-xl bg-white p-8 shadow-sm">
           <p role="alert" className="text-red-600">
-            Não há perguntas configuradas para este questionário.
+            Não há perguntas configuradas para este Formulário.
           </p>
         </section>
       </main>
@@ -244,7 +244,7 @@ export default function QuestionsForm({
       <main className="min-h-screen bg-gray-50 p-4 md:p-8">
         <div className="mx-auto w-full max-w-3xl rounded-xl bg-white p-8 shadow-sm">
           <h1 className="mb-2 text-2xl font-semibold text-gray-800">
-            Questionário finalizado
+            Formulário finalizado
           </h1>
           <p className="mb-8 text-gray-500">
             Suas respostas estão disponíveis para consulta.
@@ -318,7 +318,7 @@ export default function QuestionsForm({
               disabled={isSubmitting}
               className="rounded-full bg-black px-6 py-3 font-medium text-white disabled:opacity-50"
             >
-              {isSubmitting ? "Enviando..." : "Enviar questionário"}
+              {isSubmitting ? "Enviando..." : "Enviar Formulário"}
             </button>
           </div>
         </div>
@@ -326,33 +326,33 @@ export default function QuestionsForm({
     );
   }
 
-  if (status === "NAO_INICIADO" && !showQuestionnaire) {
+  if (status === "NAO_INICIADO" && !showForm) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <section className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
           <h1 className="mb-3 text-2xl font-semibold text-gray-800">
-            Bem-vindo ao questionário
+            Bem-vindo ao Formulário
           </h1>
           <p className="mb-6 text-gray-500">
-            Você está prestes a iniciar o preenchimento do questionário.
+            Você está prestes a iniciar o preenchimento do Formulário.
           </p>
           <button
-            onClick={() => setShowQuestionnaire(true)}
+            onClick={() => setShowForm(true)}
             className="w-full rounded-full bg-black px-6 py-3 font-medium text-white"
           >
-            Iniciar questionário
+            Iniciar Formulário
           </button>
         </section>
       </main>
     );
   }
 
-  if (status === "EM_PREENCHIMENTO" && !showQuestionnaire) {
+  if (status === "EM_PREENCHIMENTO" && !showForm) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <section className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
           <h1 className="mb-3 text-2xl font-semibold text-gray-800">
-            Questionário em andamento
+            Formulário em andamento
           </h1>
           <p className="mb-6 text-gray-500">
             Você pode continuar de onde parou ou descartar as respostas e
@@ -364,7 +364,7 @@ export default function QuestionsForm({
             </p>
           )}
           <button
-            onClick={() => setShowQuestionnaire(true)}
+            onClick={() => setShowForm(true)}
             className="mb-3 w-full rounded-full bg-black px-6 py-3 font-medium text-white"
           >
             Continuar preenchimento

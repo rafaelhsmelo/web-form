@@ -21,7 +21,7 @@ export type Question = {
 };
 
 interface CsvRow {
-  questionnaire_id: string;
+  form_id: string;
   section_id: string;
   section_title: string;
   question_id: string;
@@ -32,7 +32,7 @@ interface CsvRow {
   option_image?: string;
 }
 
-export function loadQuestionsFromCSV(questionnaireId: string): Question[] {
+export function loadQuestionsFromCSV(formId: string): Question[] {
   const filePath = path.join(process.cwd(), "src", "data", "villa-piauhy.csv");
   const fileContent = fs.readFileSync(filePath, "utf-8");
 
@@ -46,14 +46,14 @@ export function loadQuestionsFromCSV(questionnaireId: string): Question[] {
   }
 
   const rows = (parsed.data as CsvRow[]).filter(
-    (row) => row.questionnaire_id === questionnaireId,
+    (row) => row.form_id === formId,
   );
   const questionMap: { [key: string]: Question } = {};
 
   rows.forEach((row) => {
     if (!row.question_id) {
       throw new Error(
-        `Pergunta sem identificador no questionário "${questionnaireId}".`,
+        `Pergunta sem identificador no Formulário "${formId}".`,
       );
     }
 

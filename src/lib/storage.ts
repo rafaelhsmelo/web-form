@@ -1,31 +1,31 @@
-import { Registro, Status, TokenInfo } from "./types";
+import { Registro, Status, UserInfo } from "./types";
 import { turso } from "./turso";
 
-export type FinalizedSubmission = {
-  token: string;
-  questionarioId: string;
+export type FinalizedUserSubmission = {
+  userId: string;
+  formId: string;
   finalizedAt: string;
   answers: Record<string, string>;
 };
-// RN001: o token só é válido se existir na tabela tokens
-export async function findToken(token: string): Promise<TokenInfo | null> {
+// RN001: o userId só é válido se existir na tabela users
+export async function findUser(userId: string): Promise<UserInfo | null> {
   const result = await turso.execute({
-    sql: "SELECT token, questionarioId FROM tokens WHERE token = ?",
-    args: [token],
+    sql: "SELECT userId, formId FROM users WHERE userId = ?",
+    args: [userId],
   });
 
   if (result.rows.length === 0) return null;
 
   return {
-    token: result.rows[0].token as string,
-    questionarioId: result.rows[0].questionarioId as string,
+    userId: result.rows[0].userId as string,
+    formId: result.rows[0].formId as string,
   };
 }
 
-export async function getRegistro(token: string): Promise<Registro | null> {
+export async function getRegistro(userId: string): Promise<Registro | null> {
   const result = await turso.execute({
-    sql: "SELECT status, currentStep, answers, updatedAt, finalizedAt FROM respostas WHERE token = ?",
-    args: [token],
+    sql: "SELECT status, currentStep, answers, updatedAt, finalizedAt FROM respostas WHERE userId = ?",
+    args: [userId],
   });
 
   if (result.rows.length === 0) return null;
@@ -51,12 +51,12 @@ export async function getRegistro(token: string): Promise<Registro | null> {
   };
 }
 
-export async function getFinalizedSubmissions(): Promise<FinalizedSubmission[]> {
+export async function getFinalizedUserSubmissions(): Promise<FinalizedUserSubmission[]> {
   const result = await turso.execute({
     sql: `
-      SELECT r.token, t.questionarioId, r.finalizedAt, r.answers
+      SELECT r.userId, u.formId, r.finalizedAt, r.answers
       FROM respostas r
-      JOIN tokens t ON r.token = t.token
+      JOIN users u ON r.userId = u.userId
       WHERE r.status = 'FINALIZADO'
       ORDER BY r.finalizedAt DESC
     `,
@@ -65,12 +65,12 @@ export async function getFinalizedSubmissions(): Promise<FinalizedSubmission[]> 
   return result.rows.map((row) => {
     if (typeof row.finalizedAt !== "string") {
       throw new Error(
-        `O questionário finalizado do token "${String(row.token)}" não possui data de envio.`,
+        `O Formulário finalizado do userId "${String(row.userId)}" não possui data de envio.`,
       );
     }
     if (typeof row.answers !== "string") {
       throw new Error(
-        `As respostas finalizadas do token "${String(row.token)}" estão inválidas.`,
+        `As respostas finalizadas do userId "${String(row.userId)}" estão inválidas.`,
       );
     }
 
@@ -79,35 +79,35 @@ export async function getFinalizedSubmissions(): Promise<FinalizedSubmission[]> 
       answers = JSON.parse(row.answers) as Record<string, string>;
     } catch (error) {
       throw new Error(
-        `As respostas finalizadas do token "${String(row.token)}" estão corrompidas.`,
+        `As respostas finalizadas do userId "${String(row.userId)}" estão corrompidas.`,
         { cause: error },
       );
     }
 
     return {
-      token: row.token as string,
-      questionarioId: row.questionarioId as string,
+      userId: row.userId as string,
+      formId: row.formId as string,
       finalizedAt: row.finalizedAt,
       answers,
     };
   });
 }
 
-export async function getStatus(token: string): Promise<Status> {
-  const registro = await getRegistro(token);
+export async function getStatus(userId: string): Promise<Status> {
+  const registro = await getRegistro(userId);
   return registro ? registro.status : "NAO_INICIADO";
 }
 
 // Cria ou atualiza o progresso no banco de dados. Recusa alteração se já finalizado (RN007)
 export async function saveProgress(
-  token: string,
+  userId: string,
   answers: Record<string, string>,
   currentStep: number,
 ): Promise<Registro> {
-  const registroAtual = await getRegistro(token);
+  const registroAtual = await getRegistro(userId);
 
   if (registroAtual?.status === "FINALIZADO") {
-    throw new Error("Questionário já finalizado");
+    throw new Error("Formulário já finalizado");
   }
 
   const agora = new Date().toISOString();
@@ -115,14 +115,14 @@ export async function saveProgress(
 
   await turso.execute({
     sql: `
-      INSERT INTO respostas (token, status, currentStep, answers, updatedAt, finalizedAt)
+      INSERT INTO respostas (userId, status, currentStep, answers, updatedAt, finalizedAt)
       VALUES (?, 'EM_PREENCHIMENTO', ?, ?, ?, NULL)
-      ON CONFLICT(token) DO UPDATE SET
+      ON CONFLICT(userId) DO UPDATE SET
         currentStep = excluded.currentStep,
         answers = excluded.answers,
         updatedAt = excluded.updatedAt
     `,
-    args: [token, currentStep, answersJson, agora],
+    args: [userId, currentStep, answersJson, agora],
   });
 
   return {
@@ -135,22 +135,22 @@ export async function saveProgress(
 }
 
 // Descarta o preenchimento em andamento (recomeçar). Recusa se finalizado
-export async function discardProgress(token: string): Promise<void> {
-  const registroAtual = await getRegistro(token);
+export async function discardProgress(userId: string): Promise<void> {
+  const registroAtual = await getRegistro(userId);
 
   if (registroAtual?.status === "FINALIZADO") {
-    throw new Error("Questionário já finalizado");
+    throw new Error("Formulário já finalizado");
   }
 
   await turso.execute({
-    sql: "DELETE FROM respostas WHERE token = ?",
-    args: [token],
+    sql: "DELETE FROM respostas WHERE userId = ?",
+    args: [userId],
   });
 }
 
 // Envio definitivo e irreversível (RF007)
-export async function finalize(token: string): Promise<Registro> {
-  const registroAtual = await getRegistro(token);
+export async function finalize(userId: string): Promise<Registro> {
+  const registroAtual = await getRegistro(userId);
 
   if (!registroAtual) throw new Error("Nada para enviar");
   if (registroAtual.status === "FINALIZADO") throw new Error("Já finalizado");
@@ -161,9 +161,9 @@ export async function finalize(token: string): Promise<Registro> {
     sql: `
       UPDATE respostas
       SET status = 'FINALIZADO', updatedAt = ?, finalizedAt = ?
-      WHERE token = ?
+      WHERE userId = ?
     `,
-    args: [agora, agora, token],
+    args: [agora, agora, userId],
   });
 
   return {

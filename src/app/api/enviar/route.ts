@@ -1,28 +1,28 @@
 import { finalize, getRegistro } from "@/lib/storage";
-import { getAuthenticatedTokenInfo } from "@/lib/auth";
+import { getAuthenticatedUserInfo } from "@/lib/auth";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
 export async function POST() {
-  const tokenInfo = await getAuthenticatedTokenInfo();
-  if (!tokenInfo) {
+  const userInfo = await getAuthenticatedUserInfo();
+  if (!userInfo) {
     return Response.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
-  const token = tokenInfo.token;
-  const perguntas = loadQuestionsFromCSV(tokenInfo.questionarioId);
+  const userId = userInfo.userId;
+  const perguntas = loadQuestionsFromCSV(userInfo.formId);
   if (perguntas.length === 0) {
     return Response.json(
       {
-        error: `Nenhuma pergunta está configurada para o questionário "${tokenInfo.questionarioId}".`,
+        error: `Nenhuma pergunta está configurada para o Formulário "${userInfo.formId}".`,
       },
       { status: 500 },
     );
   }
 
-  const registro = await getRegistro(token);
+  const registro = await getRegistro(userId);
   if (!registro || registro.status !== "EM_PREENCHIMENTO") {
     return Response.json(
-      { error: "Não há um questionário em preenchimento para enviar." },
+      { error: "Não há um Formulário em preenchimento para enviar." },
       { status: 409 },
     );
   }
@@ -32,7 +32,7 @@ export async function POST() {
       (opcao) => opcao.id === registro.answers[pergunta.id],
     ),
   );
-  const respostasPertencemAoQuestionario = Object.entries(
+  const respostasPertencemAoForm = Object.entries(
     registro.answers,
   ).every(([questionId, answerId]) =>
     perguntas.some(
@@ -42,7 +42,7 @@ export async function POST() {
     ),
   );
 
-  if (!todasRespondidas || !respostasPertencemAoQuestionario) {
+  if (!todasRespondidas || !respostasPertencemAoForm) {
     return Response.json(
       { error: "Responda todas as perguntas antes de enviar." },
       { status: 400 },
@@ -50,7 +50,7 @@ export async function POST() {
   }
 
   try {
-    const registroFinalizado = await finalize(token);
+    const registroFinalizado = await finalize(userId);
     return Response.json({ registro: registroFinalizado });
   } catch (error) {
     if (error instanceof Error && error.message === "Já finalizado") {

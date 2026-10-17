@@ -1,6 +1,6 @@
-# Questionário Villa Piauhy
+# Formulário Villa Piauhy
 
-Aplicação web para coleta de dados por meio de um questionário interativo multi-etapas, com salvamento contínuo do progresso.
+Aplicação web para coleta de dados por meio de um Formulário interativo multi-etapas, com salvamento contínuo do progresso.
 
 ## Stack
 
@@ -16,7 +16,7 @@ Crie `.env.local` com:
 
 ```env
 TURSO_DATABASE_URL=
-TURSO_AUTH_TOKEN=
+TURSO_AUTH_KEY=
 ADMIN_KEY=
 ```
 
@@ -32,7 +32,7 @@ Configure `ADMIN_KEY` no arquivo `.env.local`, na raiz do projeto, antes de
 iniciar a aplicação:
 
 ```dotenv
-ADMIN_KEY=<defina-um-token-secreto-e-forte>
+ADMIN_KEY=<defina-uma-chave-secreta-e-forte>
 ```
 
 O servidor carrega essa chave ao autenticar o administrador. Mantenha o arquivo

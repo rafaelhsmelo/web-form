@@ -1,18 +1,18 @@
 import { discardProgress, saveProgress } from "@/lib/storage";
-import { getAuthenticatedTokenInfo } from "@/lib/auth";
+import { getAuthenticatedUserInfo } from "@/lib/auth";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
 export async function DELETE() {
-  const tokenInfo = await getAuthenticatedTokenInfo();
-  if (!tokenInfo) {
+  const userInfo = await getAuthenticatedUserInfo();
+  if (!userInfo) {
     return Response.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
-  const token = tokenInfo.token;
+  const userId = userInfo.userId;
   try {
-    await discardProgress(token);
+    await discardProgress(userId);
   } catch (error) {
-    if (error instanceof Error && error.message === "Questionário já finalizado") {
+    if (error instanceof Error && error.message === "Formulário já finalizado") {
       return Response.json({ error: error.message }, { status: 409 });
     }
     throw error;
@@ -58,18 +58,18 @@ export async function PUT(request: Request) {
     );
   }
 
-  const tokenInfo = await getAuthenticatedTokenInfo();
-  if (!tokenInfo) {
+  const userInfo = await getAuthenticatedUserInfo();
+  if (!userInfo) {
     return Response.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
-  const token = tokenInfo.token;
-  const perguntas = loadQuestionsFromCSV(tokenInfo.questionarioId);
+  const userId = userInfo.userId;
+  const perguntas = loadQuestionsFromCSV(userInfo.formId);
 
   if (perguntas.length === 0) {
     return Response.json(
       {
-        error: `Nenhuma pergunta está configurada para o questionário "${tokenInfo.questionarioId}".`,
+        error: `Nenhuma pergunta está configurada para o Formulário "${userInfo.formId}".`,
       },
       { status: 500 },
     );
@@ -83,17 +83,17 @@ export async function PUT(request: Request) {
     const pergunta = perguntas.find((item) => item.id === questionId);
     if (!pergunta || !pergunta.options.some((option) => option.id === answerId)) {
       return Response.json(
-        { error: "Uma ou mais respostas não pertencem ao questionário." },
+        { error: "Uma ou mais respostas não pertencem ao Formulário." },
         { status: 400 },
       );
     }
   }
 
   try {
-    const registro = await saveProgress(token, body.answers, body.currentStep);
+    const registro = await saveProgress(userId, body.answers, body.currentStep);
     return Response.json({ registro });
   } catch (error) {
-    if (error instanceof Error && error.message === "Questionário já finalizado") {
+    if (error instanceof Error && error.message === "Formulário já finalizado") {
       return Response.json({ error: error.message }, { status: 409 });
     }
     throw error;

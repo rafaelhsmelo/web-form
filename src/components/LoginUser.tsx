@@ -3,11 +3,11 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
-export default function LoginToken() {
+export default function LoginUser() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"user" | "admin">("user");
-  const [token, setToken] = useState("");
-  const [adminToken, setAdminToken] = useState("");
+  const [userId, setUserId] = useState("");
+  const [adminKey, setAdminKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,10 +17,10 @@ export default function LoginToken() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/token", {
+      const response = await fetch("/api/user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: token.trim() }),
+        body: JSON.stringify({ userId: userId.trim() }),
       });
       const data: unknown = await response.json();
 
@@ -31,7 +31,7 @@ export default function LoginToken() {
           "error" in data &&
           typeof data.error === "string"
             ? data.error
-            : "Não foi possível validar o token.";
+            : "Não foi possível validar o userId.";
         throw new Error(message);
       }
 
@@ -40,7 +40,7 @@ export default function LoginToken() {
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : "Ocorreu um erro ao validar o token.",
+          : "Ocorreu um erro ao validar o userId.",
       );
     } finally {
       setIsLoading(false);
@@ -56,7 +56,7 @@ export default function LoginToken() {
       const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: adminToken.trim() }),
+        body: JSON.stringify({ adminKey: adminKey.trim() }),
       });
       const data: unknown = await response.json();
 
@@ -137,21 +137,21 @@ export default function LoginToken() {
             onSubmit={handleSubmit}
           >
             <h1 className="mb-2 text-2xl font-semibold text-gray-800">
-              Acesso ao questionário
+              Acesso ao Formulário
             </h1>
             <p className="mb-6 text-gray-500">
-              Informe o token recebido para continuar.
+              Informe o userId recebido para continuar.
             </p>
             <label
-              htmlFor="token"
+              htmlFor="userId"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Token de acesso
+              userId de acesso
             </label>
             <input
-              id="token"
-              value={token}
-              onChange={(event) => setToken(event.target.value)}
+              id="userId"
+              value={userId}
+              onChange={(event) => setUserId(event.target.value)}
               autoComplete="off"
               required
               className="w-full rounded-lg border border-gray-300 p-3"
@@ -180,19 +180,19 @@ export default function LoginToken() {
               Acesso administrativo
             </h1>
             <p className="mb-6 text-gray-500">
-              Informe o token administrativo para continuar.
+              Informe a chave administrativa para continuar.
             </p>
             <label
-              htmlFor="admin-token"
+              htmlFor="admin-key"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Token administrativo
+              Chave administrativa
             </label>
             <input
-              id="admin-token"
+              id="admin-key"
               type="password"
-              value={adminToken}
-              onChange={(event) => setAdminToken(event.target.value)}
+              value={adminKey}
+              onChange={(event) => setAdminKey(event.target.value)}
               autoComplete="current-password"
               required
               className="w-full rounded-lg border border-gray-300 p-3"

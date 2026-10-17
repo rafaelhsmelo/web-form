@@ -5,30 +5,30 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const key = searchParams.get("key");
-  const idQuestionario = searchParams.get("id");
+  const formId = searchParams.get("formId");
 
   if (key !== process.env.ADMIN_KEY) {
     return NextResponse.json({ error: "Acesso negado." }, { status: 401 });
   }
 
-  if (!idQuestionario) {
+  if (!formId) {
     return NextResponse.json(
-      { error: "Informe o ID do questionário." },
+      { error: "Informe o ID do Formulário." },
       { status: 400 },
     );
   }
 
   try {
-    const perguntas = loadQuestionsFromCSV(idQuestionario);
+    const perguntas = loadQuestionsFromCSV(formId);
     const result = await turso.execute({
       sql: `
-      SELECT r.token, r.answers
+      SELECT r.userId, r.answers
       FROM respostas r
-      JOIN tokens t ON r.token = t.token
+      JOIN users u ON r.userId = u.userId
       WHERE r.status = 'FINALIZADO'
-        AND t.questionarioId = ?
+        AND u.formId = ?
     `,
-      args: [idQuestionario],
+      args: [formId],
     });
 
     const respostasBanco = result.rows;
@@ -41,12 +41,12 @@ export async function GET(request: Request) {
     }
 
     const titulosPerguntas = perguntas.map((p) => p.title.replace(/,/g, ""));
-    const cabecalho = ["Token", ...titulosPerguntas].join(",") + "\n";
+    const cabecalho = ["userId", ...titulosPerguntas].join(",") + "\n";
 
     let linhas = "";
 
     for (const row of respostasBanco) {
-      const tokenId = row.token as string;
+      const currentUserId = row.userId as string;
       const dadosJson = row.answers as string;
 
       let respostasUsuario: Record<string, string> = {};
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
         continue;
       }
 
-      const linhaUsuario = [tokenId];
+      const linhaUsuario = [currentUserId];
 
       for (const pergunta of perguntas) {
         const idOpcaoEscolhida = respostasUsuario[pergunta.id];

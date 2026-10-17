@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import AdminDashboardActions from "@/components/AdminDashboardActions";
 import { hasAdminSession } from "@/lib/adminAuth";
-import { getFinalizedSubmissions } from "@/lib/storage";
+import { getFinalizedUserSubmissions } from "@/lib/storage";
 
 export default async function AdminDashboard() {
   if (!(await hasAdminSession())) {
     redirect("/");
   }
 
-  const submissions = await getFinalizedSubmissions();
+  const submissions = await getFinalizedUserSubmissions();
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-12">
@@ -30,10 +30,10 @@ export default async function AdminDashboard() {
               <thead>
                 <tr className="border-b border-gray-200 text-gray-600">
                   <th scope="col" className="px-4 py-3 font-medium">
-                    Token
+                    userId
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
-                    Questionário
+                    Formulário
                   </th>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Enviado em
@@ -46,13 +46,13 @@ export default async function AdminDashboard() {
               <tbody>
                 {submissions.map((submission) => (
                   <tr
-                    key={submission.token}
+                    key={submission.userId}
                     className="border-b border-gray-100 last:border-0"
                   >
                     <td className="whitespace-nowrap px-4 py-3">
-                      {submission.token}
+                      {submission.userId}
                     </td>
-                    <td className="px-4 py-3">{submission.questionarioId}</td>
+                    <td className="px-4 py-3">{submission.formId}</td>
                     <td className="whitespace-nowrap px-4 py-3">
                       <time dateTime={submission.finalizedAt}>
                         {new Date(submission.finalizedAt).toLocaleString(

@@ -1,11 +1,11 @@
 import Papa from "papaparse";
 import { hasAdminSession } from "@/lib/adminAuth";
-import { getFinalizedSubmissions } from "@/lib/storage";
+import { getFinalizedUserSubmissions } from "@/lib/storage";
 import { loadQuestionsFromCSV, type Question } from "@/utils/loadQuestions";
 
 type QuestionColumn = {
   header: string;
-  questionarioId: string;
+  formId: string;
   questionId: string;
   optionLabels: Map<string, string>;
 };
@@ -18,7 +18,7 @@ export async function GET() {
     );
   }
 
-  const submissions = await getFinalizedSubmissions();
+  const submissions = await getFinalizedUserSubmissions();
   if (submissions.length === 0) {
     return Response.json(
       { error: "Não há formulários finalizados disponíveis para exportação." },
@@ -27,21 +27,21 @@ export async function GET() {
   }
 
   const columnsByField = new Map<string, QuestionColumn>();
-  const questionsByQuestionnaire = new Map<string, Question[]>();
+  const questionsByForm = new Map<string, Question[]>();
 
   for (const submission of submissions) {
-    let questions = questionsByQuestionnaire.get(submission.questionarioId);
+    let questions = questionsByForm.get(submission.formId);
     if (!questions) {
-      questions = loadQuestionsFromCSV(submission.questionarioId);
-      questionsByQuestionnaire.set(submission.questionarioId, questions);
+      questions = loadQuestionsFromCSV(submission.formId);
+      questionsByForm.set(submission.formId, questions);
     }
 
     for (const question of questions) {
-      const field = `${submission.questionarioId}:${question.id}`;
+      const field = `${submission.formId}:${question.id}`;
       if (!columnsByField.has(field)) {
         columnsByField.set(field, {
-          header: `Pergunta (${submission.questionarioId}/${question.id}): ${question.title}`,
-          questionarioId: submission.questionarioId,
+          header: `Pergunta (${submission.formId}/${question.id}): ${question.title}`,
+          formId: submission.formId,
           questionId: question.id,
           optionLabels: new Map(
             question.options.map((option) => [option.id, option.label]),
@@ -51,11 +51,11 @@ export async function GET() {
     }
 
     for (const questionId of Object.keys(submission.answers)) {
-      const field = `${submission.questionarioId}:${questionId}`;
+      const field = `${submission.formId}:${questionId}`;
       if (!columnsByField.has(field)) {
         columnsByField.set(field, {
-          header: `Resposta (${submission.questionarioId}/${questionId})`,
-          questionarioId: submission.questionarioId,
+          header: `Resposta (${submission.formId}/${questionId})`,
+          formId: submission.formId,
           questionId,
           optionLabels: new Map(),
         });
@@ -65,17 +65,17 @@ export async function GET() {
 
   const columns = [...columnsByField.values()];
   const fields = [
-    "Token",
-    "ID do questionário",
+    "userId",
+    "ID do Formulário",
     "Data de envio",
     ...columns.map((column) => column.header),
   ];
   const data = submissions.map((submission) => [
-    submission.token,
-    submission.questionarioId,
+    submission.userId,
+    submission.formId,
     submission.finalizedAt,
     ...columns.map((column) => {
-      if (column.questionarioId !== submission.questionarioId) return "";
+      if (column.formId !== submission.formId) return "";
       const answerId = submission.answers[column.questionId];
       return answerId
         ? column.optionLabels.get(answerId) ?? answerId

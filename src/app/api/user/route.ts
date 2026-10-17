@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findToken, getRegistro } from "@/lib/storage";
+import { findUser, getRegistro } from "@/lib/storage";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
 export async function POST(request: Request) {
@@ -17,45 +17,45 @@ export async function POST(request: Request) {
   if (
     typeof body !== "object" ||
     body === null ||
-    !("token" in body) ||
-    typeof body.token !== "string" ||
-    body.token.trim().length === 0
+    !("userId" in body) ||
+    typeof body.userId !== "string" ||
+    body.userId.trim().length === 0
   ) {
     return Response.json(
-      { error: "Informe um token válido." },
+      { error: "Informe um userId válido." },
       { status: 400 },
     );
   }
 
-  const token = body.token.trim();
-  const tokenInfo = await findToken(token);
+  const userId = body.userId.trim();
+  const userInfo = await findUser(userId);
 
-  if (!tokenInfo) {
-    return Response.json({ error: "Token inválido." }, { status: 404 });
+  if (!userInfo) {
+    return Response.json({ error: "userId inválido." }, { status: 404 });
   }
 
-  const perguntas = loadQuestionsFromCSV(tokenInfo.questionarioId);
+  const perguntas = loadQuestionsFromCSV(userInfo.formId);
 
   if (perguntas.length === 0) {
     return Response.json(
       {
-        error: `Nenhuma pergunta está configurada para o questionário "${tokenInfo.questionarioId}".`,
+        error: `Nenhuma pergunta está configurada para o Formulário "${userInfo.formId}".`,
       },
       { status: 500 },
     );
   }
 
-  const registro = await getRegistro(token);
+  const registro = await getRegistro(userId);
 
   const response = NextResponse.json({
-    token,
-    questionarioId: tokenInfo.questionarioId,
+    userId,
+    formId: userInfo.formId,
     status: registro?.status ?? "NAO_INICIADO",
     currentStep: registro?.currentStep ?? 0,
     answers: registro?.answers ?? {},
     perguntas,
   });
-  response.cookies.set("questionnaireToken", token, {
+  response.cookies.set("userId", userId, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -66,6 +66,6 @@ export async function POST(request: Request) {
 
 export async function DELETE() {
   const response = NextResponse.json({ message: "Sessão encerrada." });
-  response.cookies.delete("questionnaireToken");
+  response.cookies.delete("userId");
   return response;
 }

@@ -1,11 +1,11 @@
 import { cookies } from "next/headers";
-import { findToken } from "@/lib/storage";
-import type { TokenInfo } from "@/lib/types";
+import { findUser } from "@/lib/storage";
+import type { UserInfo } from "@/lib/types";
 
-export async function getAuthenticatedTokenInfo(): Promise<TokenInfo | null> {
-  const token = (await cookies()).get("questionnaireToken")?.value;
-  if (!token) {
+export async function getAuthenticatedUserInfo(): Promise<UserInfo | null> {
+  const userId = (await cookies()).get("userId")?.value;
+  if (!userId) {
     return null;
   }
-  return findToken(token);
+  return findUser(userId);
 }

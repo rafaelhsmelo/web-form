@@ -6,7 +6,7 @@ export const ADMIN_SESSION_COOKIE = "adminSession";
 
 let envFileLoaded = false;
 
-function getAdminToken(): string | null {
+function getAdminKey(): string | null {
   if (!envFileLoaded) {
     try {
       process.loadEnvFile(path.join(process.cwd(), "env.local"));
@@ -22,12 +22,12 @@ function getAdminToken(): string | null {
     envFileLoaded = true;
   }
 
-  const token = process.env.ADMIN_KEY;
-  return token?.trim() ? token.trim() : null;
+  const adminKey = process.env.ADMIN_KEY;
+  return adminKey?.trim() ? adminKey.trim() : null;
 }
 
-export function isAdminTokenConfigured(): boolean {
-  return getAdminToken() !== null;
+export function isAdminKeyConfigured(): boolean {
+  return getAdminKey() !== null;
 }
 
 function valuesMatch(first: string, second: string): boolean {
@@ -39,21 +39,21 @@ function valuesMatch(first: string, second: string): boolean {
   );
 }
 
-export function isValidAdminToken(token: string): boolean {
-  const configuredToken = getAdminToken();
-  return configuredToken !== null && valuesMatch(token, configuredToken);
+export function isValidAdminKey(adminKey: string): boolean {
+  const configuredKey = getAdminKey();
+  return configuredKey !== null && valuesMatch(adminKey, configuredKey);
 }
 
-function createAdminSessionValue(token: string): string {
-  return createHmac("sha256", token)
+function createAdminSessionValue(adminKey: string): string {
+  return createHmac("sha256", adminKey)
     .update("web-form-admin-session")
     .digest("hex");
 }
 
 export function isValidAdminSession(value: string | undefined): boolean {
-  const token = getAdminToken();
-  return token !== null && value !== undefined &&
-    valuesMatch(value, createAdminSessionValue(token));
+  const adminKey = getAdminKey();
+  return adminKey !== null && value !== undefined &&
+    valuesMatch(value, createAdminSessionValue(adminKey));
 }
 
 export async function hasAdminSession(): Promise<boolean> {
@@ -62,9 +62,9 @@ export async function hasAdminSession(): Promise<boolean> {
 }
 
 export function getNewAdminSessionValue(): string {
-  const token = getAdminToken();
-  if (!token) {
+  const adminKey = getAdminKey();
+  if (!adminKey) {
     throw new Error("A chave ADMIN_KEY não está configurada.");
   }
-  return createAdminSessionValue(token);
+  return createAdminSessionValue(adminKey);
 }

@@ -17,6 +17,14 @@ export type FormOverview = {
   totalUserCount: number;
 };
 
+export type FormUser = {
+  userId: string;
+  formId: string;
+  status: Status;
+  updatedAt: string | null;
+  finalizedAt: string | null;
+};
+
 // Entrada de data/respostas.json (uma por userId)
 export type Registro = {
   status: "EM_PREENCHIMENTO" | "FINALIZADO";

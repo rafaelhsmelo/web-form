@@ -1,4 +1,10 @@
-import { FormOverview, Registro, Status, UserInfo } from "./types";
+import {
+  FormOverview,
+  FormUser,
+  Registro,
+  Status,
+  UserInfo,
+} from "./types";
 import { turso } from "./turso";
 import { loadFormIdsFromCSV } from "@/utils/loadQuestions";
 
@@ -134,6 +140,27 @@ export async function getFormsOverview(): Promise<FormOverview[]> {
       totalUserCount: users.length,
     };
   });
+}
+
+export async function getUsersByFormId(formId: string): Promise<FormUser[]> {
+  const result = await turso.execute({
+    sql: `
+      SELECT u.userId, u.formId, r.status, r.updatedAt, r.finalizedAt
+      FROM users u
+      LEFT JOIN respostas r ON r.userId = u.userId
+      WHERE u.formId = ?
+      ORDER BY u.userId
+    `,
+    args: [formId],
+  });
+
+  return result.rows.map((row) => ({
+    userId: row.userId as string,
+    formId: row.formId as string,
+    status: (row.status as Status | null) ?? "NAO_INICIADO",
+    updatedAt: (row.updatedAt as string | null) ?? null,
+    finalizedAt: (row.finalizedAt as string | null) ?? null,
+  }));
 }
 
 export async function getStatus(userId: string): Promise<Status> {

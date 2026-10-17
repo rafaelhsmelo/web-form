@@ -3,6 +3,17 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+async function readResponseBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
+}
+
 export default function LoginUser() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"user" | "admin">("user");
@@ -22,7 +33,7 @@ export default function LoginUser() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: userId.trim() }),
       });
-      const data: unknown = await response.json();
+      const data = await readResponseBody(response);
 
       if (!response.ok) {
         const message =
@@ -31,7 +42,7 @@ export default function LoginUser() {
           "error" in data &&
           typeof data.error === "string"
             ? data.error
-            : "Não foi possível validar o userId.";
+            : "Não foi possível validar o userId. Verifique a configuração do servidor.";
         throw new Error(message);
       }
 
@@ -58,7 +69,7 @@ export default function LoginUser() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminKey: adminKey.trim() }),
       });
-      const data: unknown = await response.json();
+      const data = await readResponseBody(response);
 
       if (!response.ok) {
         const message =

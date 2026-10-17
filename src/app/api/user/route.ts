@@ -27,41 +27,49 @@ export async function POST(request: Request) {
     );
   }
 
-  const userId = body.userId.trim();
-  const userInfo = await findUser(userId);
+  try {
+    const userId = body.userId.trim();
+    const userInfo = await findUser(userId);
 
-  if (!userInfo) {
-    return Response.json({ error: "userId inválido." }, { status: 404 });
-  }
+    if (!userInfo) {
+      return Response.json({ error: "userId inválido." }, { status: 404 });
+    }
 
-  const perguntas = loadQuestionsFromCSV(userInfo.formId);
+    const perguntas = loadQuestionsFromCSV(userInfo.formId);
 
-  if (perguntas.length === 0) {
+    if (perguntas.length === 0) {
+      return Response.json(
+        {
+          error: `Nenhuma pergunta está configurada para o Formulário "${userInfo.formId}".`,
+        },
+        { status: 500 },
+      );
+    }
+
+    const registro = await getRegistro(userId);
+
+    const response = NextResponse.json({
+      userId,
+      formId: userInfo.formId,
+      status: registro?.status ?? "NAO_INICIADO",
+      currentStep: registro?.currentStep ?? 0,
+      answers: registro?.answers ?? {},
+      perguntas,
+    });
+    response.cookies.set("userId", userId, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
+    return response;
+  } catch (error) {
+    console.error("Falha ao validar userId:", error);
     return Response.json(
-      {
-        error: `Nenhuma pergunta está configurada para o Formulário "${userInfo.formId}".`,
-      },
+      { error: "Não foi possível acessar o formulário agora." },
       { status: 500 },
     );
   }
-
-  const registro = await getRegistro(userId);
-
-  const response = NextResponse.json({
-    userId,
-    formId: userInfo.formId,
-    status: registro?.status ?? "NAO_INICIADO",
-    currentStep: registro?.currentStep ?? 0,
-    answers: registro?.answers ?? {},
-    perguntas,
-  });
-  response.cookies.set("userId", userId, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-  });
-  return response;
 }
 
 export async function DELETE() {

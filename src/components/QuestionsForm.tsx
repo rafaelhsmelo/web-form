@@ -124,7 +124,7 @@ export default function QuestionsForm({
     }
 
     try {
-      const response = await fetch("/api/userId", { method: "DELETE" });
+      const response = await fetch("/api/user", { method: "DELETE" });
       const data = (await response.json()) as ApiError;
       if (!response.ok) {
         throw new Error(data.error ?? "Não foi possível encerrar a sessão.");
@@ -288,38 +288,44 @@ export default function QuestionsForm({
               {saveError}
             </p>
           )}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-between">
-            <button
-              onClick={() => {
-                setSubmitError("");
-                setIsReviewing(false);
-              }}
-              disabled={isSubmitting}
-              className="rounded-full border border-gray-300 px-6 py-3 font-medium text-gray-700 disabled:opacity-50"
-            >
-              Voltar e editar
-            </button>
-            <button
-              onClick={() => void handleExit()}
-              disabled={isSaving || isSubmitting}
-              className="rounded-full border border-gray-300 px-6 py-3 font-medium text-gray-700 disabled:opacity-50"
-            >
-              Sair
-            </button>
-            <button
-              onClick={() => void handleRestart()}
-              disabled={isSaving || isSubmitting || isRestarting}
-              className="rounded-full border border-gray-300 px-6 py-3 font-medium text-gray-700 disabled:opacity-50"
-            >
-              Limpar respostas
-            </button>
-            <button
-              onClick={() => void handleSubmit()}
-              disabled={isSubmitting}
-              className="rounded-full bg-black px-6 py-3 font-medium text-white disabled:opacity-50"
-            >
-              {isSubmitting ? "Enviando..." : "Enviar Formulário"}
-            </button>
+          <div className="mt-8 grid grid-cols-3 items-center gap-3">
+            <div className="flex justify-start">
+              <button
+                onClick={() => {
+                  setSubmitError("");
+                  setIsReviewing(false);
+                }}
+                disabled={isSubmitting}
+                className="rounded-full border border-gray-300 px-6 py-3 font-medium text-gray-700 disabled:opacity-50"
+              >
+                Voltar e editar
+              </button>
+            </div>
+            <div className="flex justify-center">
+              <button
+                onClick={() => void handleExit()}
+                disabled={isSaving || isSubmitting}
+                className="rounded-full border border-gray-300 px-6 py-3 font-medium text-gray-700 disabled:opacity-50"
+              >
+                Sair
+              </button>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => void handleRestart()}
+                disabled={isSaving || isSubmitting || isRestarting}
+                className="rounded-full border border-gray-300 px-6 py-3 font-medium text-gray-700 disabled:opacity-50"
+              >
+                Limpar respostas
+              </button>
+              <button
+                onClick={() => void handleSubmit()}
+                disabled={isSubmitting}
+                className="rounded-full bg-black px-6 py-3 font-medium text-white disabled:opacity-50"
+              >
+                {isSubmitting ? "Enviando..." : "Enviar Formulário"}
+              </button>
+            </div>
           </div>
         </div>
       </main>
@@ -487,36 +493,42 @@ export default function QuestionsForm({
           </p>
         )}
 
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
-          <button
-            onClick={() => void handlePrevious()}
-            disabled={currentStep === 0 || isSaving || isSubmitting}
-            className="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed font-medium transition-colors"
-          >
-            ← Voltar
-          </button>
-          <button
-            onClick={() => void handleExit()}
-            disabled={isSaving || isSubmitting}
-            className="px-6 py-2 text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed font-medium transition-colors"
-          >
-            Sair
-          </button>
-          {hasAnsweredCurrent && (
+        <div className="mt-8 grid grid-cols-3 items-center border-t border-gray-100 pt-6">
+          <div className="flex justify-start">
             <button
-              onClick={() =>
-                void (currentStep === questions.length - 1
-                  ? handleReview()
-                  : handleNext())
-              }
-              disabled={isSaving}
-              className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 font-medium transition-colors disabled:opacity-50"
+              onClick={() => void handlePrevious()}
+              disabled={currentStep === 0 || isSaving || isSubmitting}
+              className="px-6 py-2 font-medium text-gray-500 transition-colors hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-30"
             >
-              {currentStep === questions.length - 1
-                ? "Revisar respostas"
-                : "Avançar →"}
+              ← Voltar
             </button>
-          )}
+          </div>
+          <div className="flex justify-center">
+            <button
+              onClick={() => void handleExit()}
+              disabled={isSaving || isSubmitting}
+              className="px-6 py-2 font-medium text-gray-500 transition-colors hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              Sair
+            </button>
+          </div>
+          <div className="flex justify-end">
+            {hasAnsweredCurrent && (
+              <button
+                onClick={() =>
+                  void (currentStep === questions.length - 1
+                    ? handleReview()
+                    : handleNext())
+                }
+                disabled={isSaving}
+                className="rounded-full bg-black px-6 py-2 font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+              >
+                {currentStep === questions.length - 1
+                  ? "Revisar respostas"
+                  : "Avançar →"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </main>

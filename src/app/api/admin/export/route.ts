@@ -10,7 +10,7 @@ type QuestionColumn = {
   optionLabels: Map<string, string>;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!(await hasAdminSession())) {
     return Response.json(
       { error: "Acesso administrativo não autorizado." },
@@ -18,7 +18,11 @@ export async function GET() {
     );
   }
 
-  const submissions = await getFinalizedUserSubmissions();
+  const formId = new URL(request.url).searchParams.get("formId");
+  const allSubmissions = await getFinalizedUserSubmissions();
+  const submissions = formId
+    ? allSubmissions.filter((submission) => submission.formId === formId)
+    : allSubmissions;
   if (submissions.length === 0) {
     return Response.json(
       { error: "Não há formulários finalizados disponíveis para exportação." },
@@ -40,7 +44,7 @@ export async function GET() {
       const field = `${submission.formId}:${question.id}`;
       if (!columnsByField.has(field)) {
         columnsByField.set(field, {
-          header: `Pergunta (${submission.formId}/${question.id}): ${question.title}`,
+          header: question.title,
           formId: submission.formId,
           questionId: question.id,
           optionLabels: new Map(
@@ -54,7 +58,7 @@ export async function GET() {
       const field = `${submission.formId}:${questionId}`;
       if (!columnsByField.has(field)) {
         columnsByField.set(field, {
-          header: `Resposta (${submission.formId}/${questionId})`,
+          header: `Resposta (${questionId})`,
           formId: submission.formId,
           questionId,
           optionLabels: new Map(),
@@ -66,7 +70,7 @@ export async function GET() {
   const columns = [...columnsByField.values()];
   const fields = [
     "userId",
-    "ID do Formulário",
+    "formId",
     "Data de envio",
     ...columns.map((column) => column.header),
   ];

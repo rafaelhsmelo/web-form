@@ -1,73 +1,55 @@
 import { redirect } from "next/navigation";
 import AdminDashboardActions from "@/components/AdminDashboardActions";
+import AdminFormActions from "@/components/AdminFormActions";
 import { hasAdminSession } from "@/lib/adminAuth";
-import { getFinalizedUserSubmissions } from "@/lib/storage";
+import { getFormsOverview } from "@/lib/storage";
 
 export default async function AdminDashboard() {
   if (!(await hasAdminSession())) {
     redirect("/");
   }
 
-  const submissions = await getFinalizedUserSubmissions();
+  const forms = await getFormsOverview();
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-12">
-      <section className="mx-auto w-full max-w-5xl rounded-xl bg-white p-6 shadow-sm sm:p-8">
+      <section className="mx-auto w-full max-w-6xl rounded-xl bg-white p-6 shadow-sm sm:p-8">
         <h1 className="mb-8 text-center text-3xl font-semibold text-gray-800">
-          Formulários Encaminhados
+          Formulários
         </h1>
-        <div className="mb-8 flex justify-center">
-          <AdminDashboardActions />
-        </div>
 
-        {submissions.length === 0 ? (
+        {forms.length === 0 ? (
           <p className="py-8 text-center text-gray-500">
-            Ainda não há formulários finalizados.
+            Ainda não há formulários cadastrados.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 text-gray-600">
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    userId
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    Formulário
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    Enviado em
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    Situação
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.map((submission) => (
-                  <tr
-                    key={submission.userId}
-                    className="border-b border-gray-100 last:border-0"
-                  >
-                    <td className="whitespace-nowrap px-4 py-3">
-                      {submission.userId}
-                    </td>
-                    <td className="px-4 py-3">{submission.formId}</td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <time dateTime={submission.finalizedAt}>
-                        {new Date(submission.finalizedAt).toLocaleString(
-                          "pt-BR",
-                          { timeZone: "UTC" },
-                        )}
-                      </time>
-                    </td>
-                    <td className="px-4 py-3">Finalizado</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-3">
+            {forms.map((form) => (
+              <article
+                key={form.formId}
+                className="grid gap-4 rounded-xl border border-gray-200 p-4 lg:grid-cols-[minmax(12rem,1fr)_auto_auto]"
+              >
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    {form.name}
+                  </h2>
+                  <p className="text-sm text-gray-500">{form.formId}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+                  <span>Vazios: {form.emptyCount}</span>
+                  <span>Rascunhos: {form.draftCount}</span>
+                  <span>Concluídos: {form.completedCount}</span>
+                  <span>Total: {form.totalUserCount}</span>
+                </div>
+                <AdminFormActions formId={form.formId} />
+              </article>
+            ))}
           </div>
         )}
+
+        <div className="mt-8 flex justify-center border-t border-gray-100 pt-6">
+          <AdminDashboardActions />
+        </div>
       </section>
     </main>
   );

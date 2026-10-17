@@ -32,6 +32,23 @@ interface CsvRow {
   option_image?: string;
 }
 
+export function loadFormIdsFromCSV(): string[] {
+  const filePath = path.join(process.cwd(), "src", "data", "villa-piauhy.csv");
+  const fileContent = fs.readFileSync(filePath, "utf-8");
+  const parsed = Papa.parse<CsvRow>(fileContent, {
+    header: true,
+    skipEmptyLines: true,
+  });
+
+  if (parsed.errors.length > 0) {
+    throw new Error(
+      `Erro ao interpretar o CSV de formulários: ${parsed.errors[0].message}`,
+    );
+  }
+
+  return [...new Set(parsed.data.map((row) => row.form_id).filter(Boolean))];
+}
+
 export function loadQuestionsFromCSV(formId: string): Question[] {
   const filePath = path.join(process.cwd(), "src", "data", "villa-piauhy.csv");
   const fileContent = fs.readFileSync(filePath, "utf-8");

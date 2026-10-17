@@ -44,7 +44,7 @@ export async function GET(request: Request) {
       const field = `${submission.formId}:${question.id}`;
       if (!columnsByField.has(field)) {
         columnsByField.set(field, {
-          header: `Pergunta (${submission.formId}/${question.id}): ${question.title}`,
+          header: question.title,
           formId: submission.formId,
           questionId: question.id,
           optionLabels: new Map(
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       const field = `${submission.formId}:${questionId}`;
       if (!columnsByField.has(field)) {
         columnsByField.set(field, {
-          header: `Resposta (${submission.formId}/${questionId})`,
+          header: `Resposta (${questionId})`,
           formId: submission.formId,
           questionId,
           optionLabels: new Map(),
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
   const columns = [...columnsByField.values()];
   const fields = [
     "userId",
-    "ID do Formulário",
+    "formId",
     "Data de envio",
     ...columns.map((column) => column.header),
   ];

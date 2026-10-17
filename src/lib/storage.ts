@@ -1,11 +1,17 @@
-import { Registro, Status, UserInfo } from "./types";
+import { FormOverview, Registro, Status, UserInfo } from "./types";
 import { turso } from "./turso";
+import { loadFormIdsFromCSV } from "@/utils/loadQuestions";
 
 export type FinalizedUserSubmission = {
   userId: string;
   formId: string;
   finalizedAt: string;
   answers: Record<string, string>;
+};
+
+type UserStatusRow = {
+  formId: string;
+  status: "EM_PREENCHIMENTO" | "FINALIZADO" | null;
 };
 // RN001: o userId só é válido se existir na tabela users
 export async function findUser(userId: string): Promise<UserInfo | null> {
@@ -89,6 +95,43 @@ export async function getFinalizedUserSubmissions(): Promise<FinalizedUserSubmis
       formId: row.formId as string,
       finalizedAt: row.finalizedAt,
       answers,
+    };
+  });
+}
+
+export async function getFormsOverview(): Promise<FormOverview[]> {
+  const formIds = loadFormIdsFromCSV();
+  const result = await turso.execute({
+    sql: `
+      SELECT u.formId, r.status
+      FROM users u
+      LEFT JOIN respostas r ON r.userId = u.userId
+    `,
+  });
+  const usersByForm = new Map<string, UserStatusRow[]>();
+
+  for (const row of result.rows as unknown as UserStatusRow[]) {
+    const formUsers = usersByForm.get(row.formId) ?? [];
+    formUsers.push(row);
+    usersByForm.set(row.formId, formUsers);
+  }
+
+  return formIds.map((formId) => {
+    const users = usersByForm.get(formId) ?? [];
+    const completedCount = users.filter(
+      (user) => user.status === "FINALIZADO",
+    ).length;
+    const draftCount = users.filter(
+      (user) => user.status === "EM_PREENCHIMENTO",
+    ).length;
+
+    return {
+      formId,
+      name: formId === "villa-piauhy" ? "Villa Piauhy" : formId,
+      emptyCount: users.length - completedCount - draftCount,
+      draftCount,
+      completedCount,
+      totalUserCount: users.length,
     };
   });
 }

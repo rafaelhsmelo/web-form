@@ -10,7 +10,7 @@ type QuestionColumn = {
   optionLabels: Map<string, string>;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!(await hasAdminSession())) {
     return Response.json(
       { error: "Acesso administrativo não autorizado." },
@@ -18,7 +18,11 @@ export async function GET() {
     );
   }
 
-  const submissions = await getFinalizedUserSubmissions();
+  const formId = new URL(request.url).searchParams.get("formId");
+  const allSubmissions = await getFinalizedUserSubmissions();
+  const submissions = formId
+    ? allSubmissions.filter((submission) => submission.formId === formId)
+    : allSubmissions;
   if (submissions.length === 0) {
     return Response.json(
       { error: "Não há formulários finalizados disponíveis para exportação." },

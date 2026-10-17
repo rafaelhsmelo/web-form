@@ -1,13 +1,5 @@
-// Uso exclusivo no servidor (API Routes): depende de 'fs'.
-import fs from "fs/promises";
-import path from "path";
 import { Registro, Status, TokenInfo } from "./types";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-const TOKENS_FILE = path.join(DATA_DIR, "arquivo.json");
-const RESPOSTAS_FILE = path.join(DATA_DIR, "respostas.json");
-
-type Respostas = Record<string, Registro>;
+import { turso } from "./turso";
 
 export type FinalizedSubmission = {
   token: string;
@@ -15,70 +7,90 @@ export type FinalizedSubmission = {
   finalizedAt: string;
   answers: Record<string, string>;
 };
-
-async function readRespostas(): Promise<Respostas> {
-  try {
-    return JSON.parse(await fs.readFile(RESPOSTAS_FILE, "utf-8"));
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return {};
-    throw err;
-  }
-}
-
-// Grava em arquivo temporário e renomeia: evita deixar o JSON pela metade (RF005.5)
-async function writeRespostas(data: Respostas): Promise<void> {
-  const tmp = `${RESPOSTAS_FILE}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(data, null, 2));
-  await fs.rename(tmp, RESPOSTAS_FILE);
-}
-
-// RN001: o token só é válido se existir em arquivo.json
+// RN001: o token só é válido se existir na tabela tokens
 export async function findToken(token: string): Promise<TokenInfo | null> {
-  const file = JSON.parse(await fs.readFile(TOKENS_FILE, "utf-8")) as {
-    tokens: TokenInfo[];
+  const result = await turso.execute({
+    sql: "SELECT token, questionarioId FROM tokens WHERE token = ?",
+    args: [token],
+  });
+
+  if (result.rows.length === 0) return null;
+
+  return {
+    token: result.rows[0].token as string,
+    questionarioId: result.rows[0].questionarioId as string,
   };
-  return file.tokens.find((t) => t.token === token) ?? null;
 }
 
 export async function getRegistro(token: string): Promise<Registro | null> {
-  const respostas = await readRespostas();
-  return respostas[token] ?? null;
+  const result = await turso.execute({
+    sql: "SELECT status, currentStep, answers, updatedAt, finalizedAt FROM respostas WHERE token = ?",
+    args: [token],
+  });
+
+  if (result.rows.length === 0) return null;
+
+  const row = result.rows[0];
+
+  // Proteção contra dados nulos, vazios ou corrompidos no banco de dados
+  let parsedAnswers: Record<string, string> = {};
+  if (row.answers && typeof row.answers === "string") {
+    try {
+      parsedAnswers = JSON.parse(row.answers);
+    } catch {
+      parsedAnswers = {}; // Falha silenciosa segura, assume que não há respostas
+    }
+  }
+
+  return {
+    status: row.status as "EM_PREENCHIMENTO" | "FINALIZADO",
+    currentStep: row.currentStep as number,
+    answers: parsedAnswers,
+    updatedAt: row.updatedAt as string,
+    finalizedAt: row.finalizedAt as string | null,
+  };
 }
 
 export async function getFinalizedSubmissions(): Promise<FinalizedSubmission[]> {
-  const [respostas, tokenFileContent] = await Promise.all([
-    readRespostas(),
-    fs.readFile(TOKENS_FILE, "utf-8"),
-  ]);
-  const tokenFile = JSON.parse(tokenFileContent) as { tokens: TokenInfo[] };
-  const tokensByValue = new Map(
-    tokenFile.tokens.map((tokenInfo) => [tokenInfo.token, tokenInfo]),
-  );
+  const result = await turso.execute({
+    sql: `
+      SELECT r.token, t.questionarioId, r.finalizedAt, r.answers
+      FROM respostas r
+      JOIN tokens t ON r.token = t.token
+      WHERE r.status = 'FINALIZADO'
+      ORDER BY r.finalizedAt DESC
+    `,
+  });
 
-  return Object.entries(respostas)
-    .filter(([, registro]) => registro.status === "FINALIZADO")
-    .map(([token, registro]) => {
-      const tokenInfo = tokensByValue.get(token);
-      if (!tokenInfo) {
-        throw new Error(
-          `O questionário finalizado do token "${token}" não possui configuração correspondente.`,
-        );
-      }
-      if (!registro.finalizedAt) {
-        throw new Error(
-          `O questionário finalizado do token "${token}" não possui data de envio.`,
-        );
-      }
-      return {
-        token,
-        questionarioId: tokenInfo.questionarioId,
-        finalizedAt: registro.finalizedAt,
-        answers: registro.answers,
-      };
-    })
-    .sort((first, second) =>
-      second.finalizedAt.localeCompare(first.finalizedAt),
-    );
+  return result.rows.map((row) => {
+    if (typeof row.finalizedAt !== "string") {
+      throw new Error(
+        `O questionário finalizado do token "${String(row.token)}" não possui data de envio.`,
+      );
+    }
+    if (typeof row.answers !== "string") {
+      throw new Error(
+        `As respostas finalizadas do token "${String(row.token)}" estão inválidas.`,
+      );
+    }
+
+    let answers: Record<string, string>;
+    try {
+      answers = JSON.parse(row.answers) as Record<string, string>;
+    } catch (error) {
+      throw new Error(
+        `As respostas finalizadas do token "${String(row.token)}" estão corrompidas.`,
+        { cause: error },
+      );
+    }
+
+    return {
+      token: row.token as string,
+      questionarioId: row.questionarioId as string,
+      finalizedAt: row.finalizedAt,
+      answers,
+    };
+  });
 }
 
 export async function getStatus(token: string): Promise<Status> {
@@ -86,51 +98,78 @@ export async function getStatus(token: string): Promise<Status> {
   return registro ? registro.status : "NAO_INICIADO";
 }
 
-// Cria ou atualiza o progresso. Recusa alteração se já finalizado (RN007)
+// Cria ou atualiza o progresso no banco de dados. Recusa alteração se já finalizado (RN007)
 export async function saveProgress(
   token: string,
   answers: Record<string, string>,
   currentStep: number,
 ): Promise<Registro> {
-  const respostas = await readRespostas();
-  if (respostas[token]?.status === "FINALIZADO") {
+  const registroAtual = await getRegistro(token);
+
+  if (registroAtual?.status === "FINALIZADO") {
     throw new Error("Questionário já finalizado");
   }
-  const registro: Registro = {
+
+  const agora = new Date().toISOString();
+  const answersJson = JSON.stringify(answers);
+
+  await turso.execute({
+    sql: `
+      INSERT INTO respostas (token, status, currentStep, answers, updatedAt, finalizedAt)
+      VALUES (?, 'EM_PREENCHIMENTO', ?, ?, ?, NULL)
+      ON CONFLICT(token) DO UPDATE SET
+        currentStep = excluded.currentStep,
+        answers = excluded.answers,
+        updatedAt = excluded.updatedAt
+    `,
+    args: [token, currentStep, answersJson, agora],
+  });
+
+  return {
     status: "EM_PREENCHIMENTO",
     currentStep,
     answers,
-    updatedAt: new Date().toISOString(),
+    updatedAt: agora,
     finalizedAt: null,
   };
-  respostas[token] = registro;
-  await writeRespostas(respostas);
-  return registro;
 }
 
 // Descarta o preenchimento em andamento (recomeçar). Recusa se finalizado
 export async function discardProgress(token: string): Promise<void> {
-  const respostas = await readRespostas();
-  if (respostas[token]?.status === "FINALIZADO") {
+  const registroAtual = await getRegistro(token);
+
+  if (registroAtual?.status === "FINALIZADO") {
     throw new Error("Questionário já finalizado");
   }
-  delete respostas[token];
-  await writeRespostas(respostas);
+
+  await turso.execute({
+    sql: "DELETE FROM respostas WHERE token = ?",
+    args: [token],
+  });
 }
 
 // Envio definitivo e irreversível (RF007)
 export async function finalize(token: string): Promise<Registro> {
-  const respostas = await readRespostas();
-  const atual = respostas[token];
-  if (!atual) throw new Error("Nada para enviar");
-  if (atual.status === "FINALIZADO") throw new Error("Já finalizado");
+  const registroAtual = await getRegistro(token);
+
+  if (!registroAtual) throw new Error("Nada para enviar");
+  if (registroAtual.status === "FINALIZADO") throw new Error("Já finalizado");
+
   const agora = new Date().toISOString();
-  respostas[token] = {
-    ...atual,
+
+  await turso.execute({
+    sql: `
+      UPDATE respostas
+      SET status = 'FINALIZADO', updatedAt = ?, finalizedAt = ?
+      WHERE token = ?
+    `,
+    args: [agora, agora, token],
+  });
+
+  return {
+    ...registroAtual,
     status: "FINALIZADO",
     updatedAt: agora,
     finalizedAt: agora,
   };
-  await writeRespostas(respostas);
-  return respostas[token];
 }

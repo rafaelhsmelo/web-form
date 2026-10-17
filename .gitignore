@@ -44,3 +44,5 @@ next-env.d.ts
 # respostas dos usuarios (dados em runtime)
 /data/respostas.json
 /data/*.tmp
+/src/data/arquivo.json
+/src/data/respostas.json

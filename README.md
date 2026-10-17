@@ -1,17 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Questionário Villa Piauhy
 
-## Getting Started
+Aplicação web para coleta de dados por meio de um questionário interativo multi-etapas, com salvamento contínuo do progresso.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Turso (libSQL/SQLite)
+
+## Configuração
+
+Crie `.env.local` com:
+
+```env
+TURSO_DATABASE_URL=
+TURSO_AUTH_TOKEN=
+ADMIN_KEY=
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -22,7 +28,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Acesso administrativo
 
-Configure `ADMIN_KEY` no arquivo `env.local`, na raiz do projeto, antes de
+Configure `ADMIN_KEY` no arquivo `.env.local`, na raiz do projeto, antes de
 iniciar a aplicação:
 
 ```dotenv

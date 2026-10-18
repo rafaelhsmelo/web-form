@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import AdminAddUser from "@/components/AdminAddUser";
 import AdminUserActions from "@/components/AdminUserActions";
 import AdminUserName from "@/components/AdminUserName";
 import { hasAdminSession } from "@/lib/adminAuth";
@@ -113,6 +114,7 @@ export default async function FormDetailsPage({
             </table>
           </div>
         )}
+        <AdminAddUser formId={formId} />
       </section>
     </main>
   );

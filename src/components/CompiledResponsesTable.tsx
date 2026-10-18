@@ -99,8 +99,29 @@ export default function CompiledResponsesTable({
             values.forEach((value) => {
               counts.set(value, (counts.get(value) ?? 0) + 1);
             });
+            const optionOrder = new Map(
+              question.options.map((option, index) => [option.label, index]),
+            );
             const segments = [...counts.entries()].sort(
-              ([first], [second]) => first.localeCompare(second),
+              ([firstValue, firstCount], [secondValue, secondCount]) => {
+                const countDifference = secondCount - firstCount;
+                if (countDifference !== 0) {
+                  return countDifference;
+                }
+
+                return (
+                  (optionOrder.get(firstValue) ?? Number.MAX_SAFE_INTEGER) -
+                  (optionOrder.get(secondValue) ?? Number.MAX_SAFE_INTEGER)
+                );
+              },
+            );
+            const segmentColors = new Map(
+              segments.map(([value], index) => [
+                value,
+                value === "Sem resposta"
+                  ? "bg-gray-400"
+                  : colors[index % colors.length],
+              ]),
             );
 
             return (
@@ -116,30 +137,22 @@ export default function CompiledResponsesTable({
                 </th>
                 <td className="sticky left-72 z-10 min-w-72 border-r border-gray-100 bg-white px-4 py-4">
                   <div
-                    className="flex h-3 w-full overflow-hidden rounded-full bg-gray-200"
+                    className="flex h-8 w-full overflow-hidden rounded-full bg-gray-200"
                     aria-label={`Resumo das respostas para ${question.title}`}
                   >
-                    {segments.map(([value, count], index) => (
+                    {segments.map(([value, count]) => (
                       <span
                         key={value}
                         title={`${value}: ${Math.round((count / responses.length) * 100)}%`}
-                        className={`h-full ${value === "Sem resposta" ? "bg-gray-400" : colors[index % colors.length]}`}
+                        className={`flex h-full min-w-0 items-center justify-center overflow-hidden px-1 text-xs font-medium text-white ${segmentColors.get(value)}`}
                         style={{
                           width: `${(count / responses.length) * 100}%`,
                         }}
-                      />
-                    ))}
-                  </div>
-                  <div className="mt-2 space-y-1 text-xs text-gray-600">
-                    {segments.map(([value, count], index) => (
-                      <div key={value} className="flex items-start gap-2">
-                        <span
-                          className={`mt-0.5 h-3 w-3 shrink-0 rounded-sm ${value === "Sem resposta" ? "bg-gray-400" : colors[index % colors.length]}`}
-                        />
-                        <span>
-                          {value} ({Math.round((count / responses.length) * 100)}%)
+                      >
+                        <span className="truncate">
+                          {Math.round((count / responses.length) * 100)}%
                         </span>
-                      </div>
+                      </span>
                     ))}
                   </div>
                 </td>
@@ -158,10 +171,14 @@ export default function CompiledResponsesTable({
                         onClick={() =>
                           setExpandedCell(isExpanded ? null : cellId)
                         }
-                        className={`block w-full text-left text-gray-700 ${isExpanded ? "whitespace-normal" : "line-clamp-2"}`}
+                        className={`flex w-full items-start gap-2 text-left text-gray-700 ${isExpanded ? "whitespace-normal" : "line-clamp-2"}`}
                         title={isExpanded ? "Recolher resposta" : "Expandir resposta"}
                       >
-                        {answer}
+                        <span
+                          aria-hidden="true"
+                          className={`mt-1 h-3 w-3 shrink-0 rounded-sm ${segmentColors.get(answer) ?? "bg-gray-400"}`}
+                        />
+                        <span>{answer}</span>
                       </button>
                     </td>
                   );

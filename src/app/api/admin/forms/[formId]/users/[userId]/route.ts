@@ -72,3 +72,33 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   return NextResponse.json({ name });
 }
+
+export async function DELETE(request: Request, context: RouteContext) {
+  if (!(await hasAdminSession())) {
+    return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  const { formId, userId } = await context.params;
+  const user = await turso.execute({
+    sql: "SELECT userId FROM users WHERE userId = ? AND formId = ?",
+    args: [userId, formId],
+  });
+
+  if (user.rows.length === 0) {
+    return NextResponse.json(
+      { error: "Usuário não encontrado neste formulário." },
+      { status: 404 },
+    );
+  }
+
+  await turso.execute({
+    sql: "DELETE FROM respostas WHERE userId = ?",
+    args: [userId],
+  });
+  await turso.execute({
+    sql: "DELETE FROM users WHERE userId = ? AND formId = ?",
+    args: [userId, formId],
+  });
+
+  return NextResponse.json({ message: "Usuário excluído." });
+}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import AdminUserActions from "@/components/AdminUserActions";
 import AdminUserName from "@/components/AdminUserName";
 import { hasAdminSession } from "@/lib/adminAuth";
 import { getUsersByFormId } from "@/lib/storage";
@@ -99,7 +100,12 @@ export default async function FormDetailsPage({
                           })
                         : "—"}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">Em breve</td>
+                    <td className="px-4 py-3">
+                      <AdminUserActions
+                        formId={formId}
+                        userId={user.userId}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

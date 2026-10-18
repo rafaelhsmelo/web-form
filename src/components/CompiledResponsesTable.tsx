@@ -63,15 +63,9 @@ export default function CompiledResponsesTable({
           <tr className="border-b border-gray-200 bg-gray-50 text-gray-600">
             <th
               scope="col"
-              className="sticky left-0 z-20 min-w-72 border-r border-gray-200 bg-gray-50 px-4 py-3 font-medium"
+              className="sticky left-0 z-20 min-w-96 border-r border-gray-200 bg-gray-50 px-4 py-3 font-medium"
             >
               Pergunta
-            </th>
-            <th
-              scope="col"
-              className="sticky left-72 z-20 min-w-72 border-r border-gray-200 bg-gray-50 px-4 py-3 font-medium"
-            >
-              Resumo
             </th>
             {responses.map((response) => (
               <th
@@ -128,16 +122,14 @@ export default function CompiledResponsesTable({
               <tr key={question.id} className="border-b border-gray-100 align-top">
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 min-w-72 border-r border-gray-100 bg-white px-4 py-4 font-medium text-gray-800"
+                  className="sticky left-0 z-10 min-w-96 border-r border-gray-100 bg-white px-4 py-4 font-medium text-gray-800"
                 >
                   <span className="block">{question.title}</span>
                   <span className="mt-1 block text-xs font-normal text-gray-500">
                     {question.sectionTitle}
                   </span>
-                </th>
-                <td className="sticky left-72 z-10 min-w-72 border-r border-gray-100 bg-white px-4 py-4">
                   <div
-                    className="flex h-8 w-full overflow-hidden rounded-full bg-gray-200"
+                    className="mt-3 flex h-8 w-full overflow-hidden rounded-full bg-gray-200"
                     aria-label={`Resumo das respostas para ${question.title}`}
                   >
                     {segments.map(([value, count]) => (
@@ -155,7 +147,7 @@ export default function CompiledResponsesTable({
                       </span>
                     ))}
                   </div>
-                </td>
+                </th>
                 {responses.map((response) => {
                   const cellId = `${question.id}:${response.userId}`;
                   const answer = answerLabel(

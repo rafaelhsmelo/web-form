@@ -11,6 +11,7 @@ import { loadFormIdsFromCSV } from "@/utils/loadQuestions";
 export type FinalizedUserSubmission = {
   userId: string;
   formId: string;
+  name: string | null;
   finalizedAt: string;
   answers: Record<string, string>;
 };
@@ -21,7 +22,7 @@ export async function getFinalizedUserSubmission(
 ): Promise<FinalizedUserSubmission | null> {
   const result = await turso.execute({
     sql: `
-      SELECT r.userId, u.formId, r.finalizedAt, r.answers
+      SELECT r.userId, u.formId, u.name, r.finalizedAt, r.answers
       FROM respostas r
       JOIN users u ON r.userId = u.userId
       WHERE r.userId = ? AND u.formId = ? AND r.status = 'FINALIZADO'
@@ -53,6 +54,7 @@ export async function getFinalizedUserSubmission(
   return {
     userId: row.userId as string,
     formId: row.formId as string,
+    name: (row.name as string | null) ?? null,
     finalizedAt: row.finalizedAt,
     answers,
   };
@@ -109,7 +111,7 @@ export async function getRegistro(userId: string): Promise<Registro | null> {
 export async function getFinalizedUserSubmissions(): Promise<FinalizedUserSubmission[]> {
   const result = await turso.execute({
     sql: `
-      SELECT r.userId, u.formId, r.finalizedAt, r.answers
+      SELECT r.userId, u.formId, u.name, r.finalizedAt, r.answers
       FROM respostas r
       JOIN users u ON r.userId = u.userId
       WHERE r.status = 'FINALIZADO'
@@ -142,6 +144,7 @@ export async function getFinalizedUserSubmissions(): Promise<FinalizedUserSubmis
     return {
       userId: row.userId as string,
       formId: row.formId as string,
+      name: (row.name as string | null) ?? null,
       finalizedAt: row.finalizedAt,
       answers,
     };

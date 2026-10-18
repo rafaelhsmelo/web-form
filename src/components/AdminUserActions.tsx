@@ -5,11 +5,13 @@ import { useState } from "react";
 type AdminUserActionsProps = {
   formId: string;
   userId: string;
+  status: "NAO_INICIADO" | "EM_PREENCHIMENTO" | "FINALIZADO";
 };
 
 export default function AdminUserActions({
   formId,
   userId,
+  status,
 }: AdminUserActionsProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -107,8 +109,13 @@ export default function AdminUserActions({
       <button
         type="button"
         onClick={() => void handleExport()}
-        disabled={isDeleting || isExporting}
-        className="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={status !== "FINALIZADO" || isDeleting || isExporting}
+        title={
+          status === "FINALIZADO"
+            ? "Baixar respostas"
+            : "Disponível após a conclusão do formulário"
+        }
+        className="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium text-gray-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isExporting ? "Baixando..." : "Baixar"}
       </button>

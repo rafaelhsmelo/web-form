@@ -28,12 +28,14 @@ export async function GET(_request: Request, context: RouteContext) {
   const questions = loadQuestionsFromCSV(formId);
   const fields = [
     "userId",
+    "Nome",
     "formId",
     "Data de envio",
     ...questions.map((question) => question.title),
   ];
   const data = [
     submission.userId,
+    submission.name ?? "",
     submission.formId,
     submission.finalizedAt,
     ...questions.map((question) => {

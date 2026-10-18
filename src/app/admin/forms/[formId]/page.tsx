@@ -104,6 +104,7 @@ export default async function FormDetailsPage({
                       <AdminUserActions
                         formId={formId}
                         userId={user.userId}
+                        status={user.status}
                       />
                     </td>
                   </tr>

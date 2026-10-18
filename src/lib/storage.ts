@@ -143,20 +143,44 @@ export async function getFormsOverview(): Promise<FormOverview[]> {
 }
 
 export async function getUsersByFormId(formId: string): Promise<FormUser[]> {
-  const result = await turso.execute({
-    sql: `
-      SELECT u.userId, u.formId, r.status, r.updatedAt, r.finalizedAt
-      FROM users u
-      LEFT JOIN respostas r ON r.userId = u.userId
-      WHERE u.formId = ?
-      ORDER BY u.userId
-    `,
-    args: [formId],
-  });
+  let result;
+
+  try {
+    result = await turso.execute({
+      sql: `
+        SELECT u.userId, u.formId, u.name, r.status, r.updatedAt, r.finalizedAt
+        FROM users u
+        LEFT JOIN respostas r ON r.userId = u.userId
+        WHERE u.formId = ?
+        ORDER BY u.userId
+      `,
+      args: [formId],
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : "";
+    const nameColumnIsMissing =
+      message.includes("no such column") && message.includes("name");
+
+    if (!nameColumnIsMissing) {
+      throw error;
+    }
+
+    result = await turso.execute({
+      sql: `
+        SELECT u.userId, u.formId, r.status, r.updatedAt, r.finalizedAt
+        FROM users u
+        LEFT JOIN respostas r ON r.userId = u.userId
+        WHERE u.formId = ?
+        ORDER BY u.userId
+      `,
+      args: [formId],
+    });
+  }
 
   return result.rows.map((row) => ({
     userId: row.userId as string,
     formId: row.formId as string,
+    name: (row.name as string | null) ?? null,
     status: (row.status as Status | null) ?? "NAO_INICIADO",
     updatedAt: (row.updatedAt as string | null) ?? null,
     finalizedAt: (row.finalizedAt as string | null) ?? null,

@@ -20,6 +20,7 @@ export type FormOverview = {
 export type FormUser = {
   userId: string;
   formId: string;
+  name: string | null;
   status: Status;
   updatedAt: string | null;
   finalizedAt: string | null;

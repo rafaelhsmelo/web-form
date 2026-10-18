@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import CompiledResponsesTable from "@/components/CompiledResponsesTable";
 import AdminFormExport from "@/components/AdminFormExport";
+import CompiledResponsesTabs from "@/components/CompiledResponsesTabs";
 import { hasAdminSession } from "@/lib/adminAuth";
 import { getCompiledFormResponses } from "@/lib/storage";
 import { loadFormIdsFromCSV, loadQuestionsFromCSV } from "@/utils/loadQuestions";
@@ -56,7 +56,7 @@ export default async function CompiledResponsesPage({
             Nenhum usuário cadastrado neste formulário.
           </p>
         ) : (
-          <CompiledResponsesTable
+          <CompiledResponsesTabs
             questions={questions}
             responses={responses}
           />

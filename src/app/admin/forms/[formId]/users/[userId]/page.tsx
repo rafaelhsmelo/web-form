@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import AdminUserExport from "@/components/AdminUserExport";
+import AdminUserId from "@/components/AdminUserId";
+import AdminUserName from "@/components/AdminUserName";
 import { hasAdminSession } from "@/lib/adminAuth";
 import { getFinalizedUserSubmission } from "@/lib/storage";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
@@ -34,17 +37,32 @@ export default async function UserDetailsPage({
             <h1 className="text-3xl font-semibold text-gray-800">
               {submission.name ?? "Nome não informado"}
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              userId: {submission.userId}
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+              <span>userId:</span>
+              <AdminUserId formId={formId} userId={submission.userId} />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+              <span>Nome:</span>
+              <AdminUserName
+                formId={formId}
+                userId={submission.userId}
+                initialName={submission.name}
+              />
+            </div>
             <p className="text-sm text-gray-500">Formulário: {formName}</p>
           </div>
-          <Link
-            href={`/admin/forms/${encodeURIComponent(formId)}`}
-            className="rounded-full border border-gray-300 px-5 py-2 font-medium text-gray-700"
-          >
-            Voltar para usuários
-          </Link>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <AdminUserExport
+              formId={formId}
+              userId={submission.userId}
+            />
+            <Link
+              href={`/admin/forms/${encodeURIComponent(formId)}`}
+              className="rounded-full border border-gray-300 px-5 py-2 font-medium text-gray-700"
+            >
+              Voltar para usuários
+            </Link>
+          </div>
         </div>
 
         <div className="mb-8 grid gap-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-600 sm:grid-cols-2">

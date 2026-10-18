@@ -2,22 +2,15 @@
 
 import type { CompiledFormResponse } from "@/lib/types";
 import type { Question } from "@/utils/loadQuestions";
+import {
+  responseColors,
+  splitIntoColumns,
+} from "@/utils/responseDisplay";
 
 type CompactResponsesTableProps = {
   questions: Question[];
   responses: CompiledFormResponse[];
 };
-
-const colors = [
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-amber-500",
-  "bg-violet-500",
-  "bg-rose-500",
-  "bg-cyan-500",
-  "bg-orange-500",
-  "bg-lime-500",
-];
 
 type AnswerGroup = {
   label: string;
@@ -27,11 +20,6 @@ type AnswerGroup = {
   color: string;
   responses: CompiledFormResponse[];
 };
-
-function splitIntoColumns<T>(items: T[]) {
-  const middle = Math.ceil(items.length / 2);
-  return [items.slice(0, middle), items.slice(middle)];
-}
 
 export default function CompactResponsesTable({
   questions,
@@ -85,7 +73,7 @@ export default function CompactResponsesTable({
                   percentage: (count / responses.length) * 100,
                   color:
                     count > 0
-                      ? colors[chosenIndex % colors.length]
+                      ? responseColors[chosenIndex % responseColors.length]
                       : "",
                   responses: responses.filter(
                     (response) => response.answers[question.id] === option.id,

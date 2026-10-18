@@ -6,22 +6,10 @@ import AdminUserName from "@/components/AdminUserName";
 import { hasAdminSession } from "@/lib/adminAuth";
 import { getCompiledFormResponses, getFinalizedUserSubmission } from "@/lib/storage";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
-
-const colors = [
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-amber-500",
-  "bg-violet-500",
-  "bg-rose-500",
-  "bg-cyan-500",
-  "bg-orange-500",
-  "bg-lime-500",
-];
-
-function splitIntoColumns<T>(items: T[]) {
-  const middle = Math.ceil(items.length / 2);
-  return [items.slice(0, middle), items.slice(middle)];
-}
+import {
+  responseColors,
+  splitIntoColumns,
+} from "@/utils/responseDisplay";
 
 type UserDetailsPageProps = {
   params: Promise<{ formId: string; userId: string }>;
@@ -157,7 +145,11 @@ export default async function UserDetailsPage({
             const answerColor =
               answer === "Não respondida"
                 ? "bg-gray-400"
-                : colors[answerIndex >= 0 ? answerIndex % colors.length : 0];
+                : responseColors[
+                    answerIndex >= 0
+                      ? answerIndex % responseColors.length
+                      : 0
+                  ];
             const responseCount = Math.max(compiledResponses.length, 1);
 
             return (
@@ -176,7 +168,7 @@ export default async function UserDetailsPage({
                     {segments.map(([value, count], index) => (
                       <span
                         key={value}
-                        className={`flex h-full min-w-0 items-center justify-center overflow-hidden px-1 text-xs font-medium text-white ${colors[index % colors.length]}`}
+                        className={`flex h-full min-w-0 items-center justify-center overflow-hidden px-1 text-xs font-medium text-white ${responseColors[index % responseColors.length]}`}
                         style={{
                           width: `${(count / responseCount) * 100}%`,
                         }}
@@ -206,7 +198,9 @@ export default async function UserDetailsPage({
                               <span
                                 className={`mt-1 h-3 w-3 shrink-0 rounded-sm ${
                                   option.count > 0
-                                    ? colors[selectedIndex % colors.length]
+                                    ? responseColors[
+                                        selectedIndex % responseColors.length
+                                      ]
                                     : "border border-gray-400 bg-transparent"
                                 }`}
                                 aria-hidden="true"

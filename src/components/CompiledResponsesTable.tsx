@@ -3,22 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { CompiledFormResponse } from "@/lib/types";
 import type { Question } from "@/utils/loadQuestions";
+import { responseColors } from "@/utils/responseDisplay";
 
 type CompiledResponsesTableProps = {
   questions: Question[];
   responses: CompiledFormResponse[];
 };
-
-const colors = [
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-amber-500",
-  "bg-violet-500",
-  "bg-rose-500",
-  "bg-cyan-500",
-  "bg-orange-500",
-  "bg-lime-500",
-];
 
 const statusLabels = {
   VAZIO: "Vazio",
@@ -117,7 +107,7 @@ export default function CompiledResponsesTable({
                 value,
                 value === "Sem resposta"
                   ? "bg-gray-400"
-                  : colors[index % colors.length],
+                  : responseColors[index % responseColors.length],
               ]),
             );
 

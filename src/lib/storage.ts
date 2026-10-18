@@ -1,10 +1,10 @@
 import {
-  FormOverview,
-  CompiledFormResponse,
-  FormUser,
-  Registro,
-  Status,
-  UserInfo,
+  type CompiledFormResponse,
+  type FormOverview,
+  type FormUser,
+  type Registro,
+  type Status,
+  type UserInfo,
 } from "./types";
 import { turso } from "./turso";
 import { loadFormIdsFromCSV } from "@/utils/loadQuestions";
@@ -17,6 +17,35 @@ export type FinalizedUserSubmission = {
   answers: Record<string, string>;
 };
 
+function parseAnswers(
+  value: unknown,
+  userId: string,
+): Record<string, string> {
+  if (typeof value !== "string") {
+    return {};
+  }
+
+  try {
+    const parsedAnswers: unknown = JSON.parse(value);
+    if (
+      typeof parsedAnswers !== "object" ||
+      parsedAnswers === null ||
+      Array.isArray(parsedAnswers) ||
+      !Object.values(parsedAnswers).every(
+        (answer) => typeof answer === "string",
+      )
+    ) {
+      throw new Error("formato inválido");
+    }
+    return parsedAnswers as Record<string, string>;
+  } catch (error) {
+    throw new Error(
+      `As respostas do userId "${userId}" estão corrompidas.`,
+      { cause: error },
+    );
+  }
+}
+
 function parseFinalizedSubmissionRow(
   row: Record<string, unknown>,
   userId: string,
@@ -27,22 +56,12 @@ function parseFinalizedSubmissionRow(
     );
   }
 
-  let answers: Record<string, string>;
-  try {
-    answers = JSON.parse(row.answers) as Record<string, string>;
-  } catch (error) {
-    throw new Error(
-      `As respostas finalizadas do userId "${userId}" estão corrompidas.`,
-      { cause: error },
-    );
-  }
-
   return {
     userId: row.userId as string,
     formId: row.formId as string,
     name: (row.name as string | null) ?? null,
     finalizedAt: row.finalizedAt,
-    answers,
+    answers: parseAnswers(row.answers, userId),
   };
 }
 
@@ -99,20 +118,10 @@ export async function getRegistro(userId: string): Promise<Registro | null> {
 
   const row = result.rows[0];
 
-  // Proteção contra dados nulos, vazios ou corrompidos no banco de dados
-  let parsedAnswers: Record<string, string> = {};
-  if (row.answers && typeof row.answers === "string") {
-    try {
-      parsedAnswers = JSON.parse(row.answers);
-    } catch {
-      parsedAnswers = {}; // Falha silenciosa segura, assume que não há respostas
-    }
-  }
-
   return {
     status: row.status as "RASCUNHO" | "FINALIZADO",
     currentStep: row.currentStep as number,
-    answers: parsedAnswers,
+    answers: parseAnswers(row.answers, userId),
     updatedAt: row.updatedAt as string,
     finalizedAt: row.finalizedAt as string | null,
   };
@@ -211,36 +220,13 @@ export async function getCompiledFormResponses(
   });
 
   return result.rows.map((row) => {
-    let answers: Record<string, string> = {};
-    if (typeof row.answers === "string") {
-      try {
-        const parsedAnswers: unknown = JSON.parse(row.answers);
-        if (
-          typeof parsedAnswers !== "object" ||
-          parsedAnswers === null ||
-          Array.isArray(parsedAnswers) ||
-          !Object.values(parsedAnswers).every(
-            (answer) => typeof answer === "string",
-          )
-        ) {
-          throw new Error("formato inválido");
-        }
-        answers = parsedAnswers as Record<string, string>;
-      } catch (error) {
-        throw new Error(
-          `As respostas do userId "${String(row.userId)}" estão corrompidas.`,
-          { cause: error },
-        );
-      }
-    }
-
     return {
       userId: row.userId as string,
       name: (row.name as string | null) ?? null,
       status: (row.status as Status | null) ?? "VAZIO",
       updatedAt: (row.updatedAt as string | null) ?? null,
       finalizedAt: (row.finalizedAt as string | null) ?? null,
-      answers,
+      answers: parseAnswers(row.answers, String(row.userId)),
     };
   });
 }

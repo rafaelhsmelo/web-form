@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type AdminUserActionsProps = {
@@ -98,6 +99,23 @@ export default function AdminUserActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {status === "FINALIZADO" ? (
+        <Link
+          href={`/admin/forms/${encodeURIComponent(formId)}/users/${encodeURIComponent(userId)}`}
+          className="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700"
+        >
+          Ver
+        </Link>
+      ) : (
+        <button
+          type="button"
+          disabled
+          title="Disponível após a conclusão do formulário"
+          className="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium text-gray-500 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Ver
+        </button>
+      )}
       <button
         type="button"
         onClick={() => void handleDelete()}

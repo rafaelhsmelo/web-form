@@ -25,6 +25,15 @@ export type FormUser = {
   finalizedAt: string | null;
 };
 
+export type CompiledFormResponse = {
+  userId: string;
+  name: string | null;
+  status: Status;
+  updatedAt: string | null;
+  finalizedAt: string | null;
+  answers: Record<string, string>;
+};
+
 // Entrada de data/respostas.json (uma por userId)
 export type Registro = {
   status: "RASCUNHO" | "FINALIZADO";

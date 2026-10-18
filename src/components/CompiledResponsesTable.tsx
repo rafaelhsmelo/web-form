@@ -57,13 +57,16 @@ export default function CompiledResponsesTable({
   }, []);
 
   return (
-    <div ref={tableRef} className="overflow-x-auto rounded-lg border border-gray-200">
-      <table className="border-collapse text-left text-sm">
+    <div
+      ref={tableRef}
+      className="overflow-x-auto rounded-lg border border-gray-200"
+    >
+      <table className="w-max min-w-full border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50 text-gray-600">
             <th
               scope="col"
-              className="sticky left-0 z-20 min-w-96 border-r border-gray-200 bg-gray-50 px-4 py-3 font-medium"
+              className="sticky left-0 z-20 min-w-80 border-r border-gray-200 bg-gray-50 px-4 py-3 font-medium"
             >
               Pergunta
             </th>
@@ -71,7 +74,7 @@ export default function CompiledResponsesTable({
               <th
                 scope="col"
                 key={response.userId}
-                className="min-w-52 px-4 py-3 font-medium"
+                className="min-w-44 px-4 py-3 font-medium"
               >
                 <span className="block text-gray-800">
                   {response.name ?? "Nome não informado"}
@@ -122,7 +125,7 @@ export default function CompiledResponsesTable({
               <tr key={question.id} className="border-b border-gray-100 align-top">
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 min-w-96 border-r border-gray-100 bg-white px-4 py-4 font-medium text-gray-800"
+                  className="sticky left-0 z-10 min-w-80 border-r border-gray-100 bg-white px-4 py-4 font-medium text-gray-800"
                 >
                   <span className="block">{question.title}</span>
                   <span className="mt-1 block text-xs font-normal text-gray-500">
@@ -157,7 +160,7 @@ export default function CompiledResponsesTable({
                   const isExpanded = expandedCell === cellId;
 
                   return (
-                    <td key={response.userId} className="min-w-52 px-4 py-4">
+                    <td key={response.userId} className="min-w-44 px-4 py-4">
                       <button
                         type="button"
                         onClick={() =>

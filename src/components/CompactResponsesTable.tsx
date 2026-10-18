@@ -45,10 +45,10 @@ export default function CompactResponsesTable({
             <th scope="col" className="w-[28%] px-4 py-3 font-medium">
               Pergunta
             </th>
-            <th scope="col" className="w-[32%] px-4 py-3 font-medium">
+            <th scope="col" className="w-[42%] px-4 py-3 font-medium">
               Opções
             </th>
-            <th scope="col" className="w-[40%] px-4 py-3 font-medium">
+            <th scope="col" className="w-[30%] px-4 py-3 font-medium">
               Usuários
             </th>
           </tr>

@@ -29,8 +29,8 @@ export default async function CompiledResponsesPage({
   const formName = formId === "villa-piauhy" ? "Villa Piauhy" : formId;
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-12">
-      <section className="mx-auto w-full max-w-[calc(100vw-2rem)] rounded-xl bg-white p-6 shadow-sm sm:p-8">
+    <main className="min-h-screen bg-gray-50 px-4 py-8 sm:py-12">
+      <section className="mx-auto w-full max-w-[calc(100vw-2rem)] rounded-xl bg-white p-5 shadow-sm sm:p-8">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm text-gray-500">Respostas compiladas</p>
@@ -40,7 +40,7 @@ export default async function CompiledResponsesPage({
               {responses.length} usuários · {questions.length} perguntas
             </p>
           </div>
-          <div className="flex flex-wrap items-start justify-end gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             <AdminFormExport formId={formId} />
             <Link
               href="/admin"

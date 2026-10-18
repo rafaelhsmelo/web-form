@@ -1,5 +1,6 @@
 "use client";
 
+// Tela inicial onde a pessoa informa o userId para entrar no formulário.
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { getApiError, readApiResponse } from "@/utils/readApiResponse";

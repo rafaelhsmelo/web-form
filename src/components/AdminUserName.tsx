@@ -1,5 +1,6 @@
 "use client";
 
+// Campo editável para atualizar o nome mostrado no painel.
 import { FormEvent, useState } from "react";
 import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 

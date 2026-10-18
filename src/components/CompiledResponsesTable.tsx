@@ -1,5 +1,6 @@
 "use client";
 
+// Tabela detalhada: cada usuário ocupa uma coluna para facilitar a comparação.
 import { useEffect, useRef, useState } from "react";
 import type { CompiledFormResponse } from "@/lib/types";
 import type { Question } from "@/utils/loadQuestions";

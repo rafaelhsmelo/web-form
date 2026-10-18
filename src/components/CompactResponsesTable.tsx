@@ -1,5 +1,6 @@
 "use client";
 
+// Tabela resumida: cabe em menos espaço e ajuda a preparar a impressão.
 import type { CompiledFormResponse } from "@/lib/types";
 import type { Question } from "@/utils/loadQuestions";
 import {

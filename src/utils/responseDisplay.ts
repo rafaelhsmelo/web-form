@@ -1,3 +1,4 @@
+// Regras visuais compartilhadas pelas tabelas de comparação.
 export const responseColors = [
   "bg-blue-500",
   "bg-emerald-500",

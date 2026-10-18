@@ -1,5 +1,6 @@
 "use client";
 
+// Reúne as ações de uma pessoa: ver, baixar respostas e excluir.
 import Link from "next/link";
 import { useState } from "react";
 import AdminUserExport from "@/components/AdminUserExport";

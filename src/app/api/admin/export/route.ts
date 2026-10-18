@@ -1,4 +1,6 @@
 import Papa from "papaparse";
+
+// Exporta os envios finalizados para CSV, depois de conferir a sessão admin.
 import { hasAdminSession } from "@/lib/adminAuth";
 import { getFinalizedUserSubmissions } from "@/lib/storage";
 import { loadQuestionsFromCSV, type Question } from "@/utils/loadQuestions";

@@ -1,3 +1,4 @@
+/* Estilos globais: o Tailwind fornece as classes usadas nas telas. */
 @import "tailwindcss";
 
 @media print {

@@ -6,6 +6,8 @@ import {
   type Status,
   type UserInfo,
 } from "./types";
+
+// Camada que conversa com o banco e concentra as regras de respostas e usuários.
 import { turso } from "./turso";
 import { loadFormIdsFromCSV } from "@/utils/loadQuestions";
 
@@ -93,7 +95,7 @@ type UserStatusRow = {
   formId: string;
   status: "RASCUNHO" | "FINALIZADO" | null;
 };
-// RN001: o userId só é válido se existir na tabela users
+// Um userId só pode entrar se já estiver cadastrado na tabela users.
 export async function findUser(userId: string): Promise<UserInfo | null> {
   const result = await turso.execute({
     sql: "SELECT userId, formId FROM users WHERE userId = ?",
@@ -236,7 +238,7 @@ export async function getStatus(userId: string): Promise<Status> {
   return registro ? registro.status : "VAZIO";
 }
 
-// Cria ou atualiza o progresso no banco de dados. Recusa alteração se já finalizado (RN007)
+// Salva o rascunho. Um formulário finalizado não pode ser alterado.
 export async function saveProgress(
   userId: string,
   answers: Record<string, string>,
@@ -272,7 +274,7 @@ export async function saveProgress(
   };
 }
 
-// Descarta o preenchimento em andamento (recomeçar). Recusa se finalizado
+// Apaga o rascunho para a pessoa começar novamente.
 export async function discardProgress(userId: string): Promise<void> {
   const registroAtual = await getRegistro(userId);
 
@@ -286,7 +288,7 @@ export async function discardProgress(userId: string): Promise<void> {
   });
 }
 
-// Envio definitivo e irreversível (RF007)
+// Marca o rascunho como finalizado; depois disso as respostas ficam bloqueadas.
 export async function finalize(userId: string): Promise<Registro> {
   const registroAtual = await getRegistro(userId);
 

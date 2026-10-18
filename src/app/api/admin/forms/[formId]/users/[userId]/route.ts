@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+// Edita ou exclui um usuário e, na exclusão, também remove suas respostas.
 import { hasAdminSession } from "@/lib/adminAuth";
 import { turso } from "@/lib/turso";
 import { validateUserId, validateUserName } from "@/lib/validation";

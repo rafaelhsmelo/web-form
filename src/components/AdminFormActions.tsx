@@ -1,5 +1,6 @@
 "use client";
 
+// Botões de cada formulário: visualizar respostas, baixar CSV e abrir detalhes.
 import Link from "next/link";
 import AdminFormExport from "@/components/AdminFormExport";
 

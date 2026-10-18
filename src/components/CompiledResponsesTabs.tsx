@@ -1,5 +1,6 @@
 "use client";
 
+// Controla a troca entre a tabela detalhada e a tabela compacta.
 import { useState } from "react";
 import CompactResponsesTable from "@/components/CompactResponsesTable";
 import CompiledResponsesTable from "@/components/CompiledResponsesTable";

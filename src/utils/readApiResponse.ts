@@ -22,3 +22,4 @@ export function getApiError(
     ? data.error
     : fallback;
 }
+// Converte respostas da API em dados úteis, inclusive quando o corpo está vazio.

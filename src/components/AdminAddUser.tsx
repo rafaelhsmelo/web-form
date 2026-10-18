@@ -1,5 +1,6 @@
 "use client";
 
+// Formulário pequeno usado pelo admin para adicionar uma pessoa ao formulário.
 import { FormEvent, useState } from "react";
 import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 

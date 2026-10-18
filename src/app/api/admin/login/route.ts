@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+// Confere a chave do administrador e cria o cookie de sessão.
 import {
   ADMIN_SESSION_COOKIE,
   getNewAdminSessionValue,

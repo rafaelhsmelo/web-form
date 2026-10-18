@@ -1,5 +1,6 @@
 "use client";
 
+// Tela de segurança do painel: mostra uma mensagem amigável quando o painel falha.
 type AdminErrorProps = {
   error: Error & { digest?: string };
 };

@@ -1,7 +1,8 @@
+// Tipos compartilhados: descrevem os dados que passam entre telas, API e banco.
 // VAZIO representa a ausência de registro para o userId.
 export type Status = "VAZIO" | "RASCUNHO" | "FINALIZADO";
 
-// Entrada de data/arquivo.json
+// Dados básicos usados para encontrar o formulário da pessoa.
 export type UserInfo = {
   userId: string;
   formId: string;
@@ -34,7 +35,7 @@ export type CompiledFormResponse = {
   answers: Record<string, string>;
 };
 
-// Entrada de data/respostas.json (uma por userId)
+// Formato salvo em respostas para continuar ou finalizar um preenchimento.
 export type Registro = {
   status: "RASCUNHO" | "FINALIZADO";
   currentStep: number;

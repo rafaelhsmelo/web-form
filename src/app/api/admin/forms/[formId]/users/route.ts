@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+// Lista e cadastra usuários dentro de um formulário administrativo.
 import { hasAdminSession } from "@/lib/adminAuth";
 import { turso } from "@/lib/turso";
 import { validateUserId, validateUserName } from "@/lib/validation";

@@ -1,4 +1,6 @@
 import { finalize, getRegistro } from "@/lib/storage";
+
+// Confere o usuário conectado e transforma seu rascunho em envio definitivo.
 import { getAuthenticatedUserInfo } from "@/lib/auth";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 

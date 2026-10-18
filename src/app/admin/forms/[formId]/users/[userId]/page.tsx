@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+// Mostra uma pessoa em detalhe e compara sua resposta com o resultado geral.
 import { notFound, redirect } from "next/navigation";
 import AdminUserExport from "@/components/AdminUserExport";
 import AdminUserId from "@/components/AdminUserId";

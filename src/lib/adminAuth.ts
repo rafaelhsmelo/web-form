@@ -1,4 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+
+// Regras da sessão admin: lê a chave secreta e cria um cookie verificável.
 import path from "node:path";
 import { cookies } from "next/headers";
 

@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+// Página de comparação: busca perguntas e respostas para as duas visualizações.
 import { notFound, redirect } from "next/navigation";
 import AdminFormExport from "@/components/AdminFormExport";
 import CompiledResponsesTabs from "@/components/CompiledResponsesTabs";

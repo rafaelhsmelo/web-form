@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+// Cria a sessão da pessoa respondente ou encerra essa sessão.
 import { findUser, getRegistro } from "@/lib/storage";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 

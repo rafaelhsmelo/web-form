@@ -1,4 +1,6 @@
 import { cookies } from "next/headers";
+
+// Entrada do formulário: identifica a pessoa e carrega as perguntas do CSV.
 import LoginUser from "@/components/LoginUser";
 import QuestionsForm from "@/components/QuestionsForm";
 import { findUser, getRegistro } from "@/lib/storage";

@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+// Detalhes de um formulário: lista seus usuários e as ações administrativas.
 import { notFound, redirect } from "next/navigation";
 import AdminAddUser from "@/components/AdminAddUser";
 import AdminUserActions from "@/components/AdminUserActions";

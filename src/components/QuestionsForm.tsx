@@ -1,5 +1,6 @@
 "use client";
 
+// Formulário interativo: mostra uma pergunta por vez e salva o progresso.
 import { useState } from "react";
 import type { Status } from "@/lib/types";
 import type { Question } from "@/utils/loadQuestions";

@@ -1,4 +1,6 @@
 import Papa from "papaparse";
+
+// Monta o CSV de uma única pessoa do formulário.
 import { hasAdminSession } from "@/lib/adminAuth";
 import { getFinalizedUserSubmission } from "@/lib/storage";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";

@@ -17,3 +17,4 @@ export function validateUserName(
   }
   return null;
 }
+// Regras pequenas e iguais para validar userId e nome em várias rotas.

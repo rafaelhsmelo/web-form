@@ -1,5 +1,6 @@
 "use client";
 
+// Faz o download das respostas de uma pessoa finalizada.
 import { useState } from "react";
 import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 

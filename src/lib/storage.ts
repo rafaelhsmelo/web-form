@@ -15,6 +15,49 @@ export type FinalizedUserSubmission = {
   answers: Record<string, string>;
 };
 
+export async function getFinalizedUserSubmission(
+  formId: string,
+  userId: string,
+): Promise<FinalizedUserSubmission | null> {
+  const result = await turso.execute({
+    sql: `
+      SELECT r.userId, u.formId, r.finalizedAt, r.answers
+      FROM respostas r
+      JOIN users u ON r.userId = u.userId
+      WHERE r.userId = ? AND u.formId = ? AND r.status = 'FINALIZADO'
+    `,
+    args: [userId, formId],
+  });
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  const row = result.rows[0];
+  if (typeof row.finalizedAt !== "string" || typeof row.answers !== "string") {
+    throw new Error(
+      `As respostas finalizadas do userId "${userId}" estão inválidas.`,
+    );
+  }
+
+  let answers: Record<string, string>;
+  try {
+    answers = JSON.parse(row.answers) as Record<string, string>;
+  } catch (error) {
+    throw new Error(
+      `As respostas finalizadas do userId "${userId}" estão corrompidas.`,
+      { cause: error },
+    );
+  }
+
+  return {
+    userId: row.userId as string,
+    formId: row.formId as string,
+    finalizedAt: row.finalizedAt,
+    answers,
+  };
+}
+
 type UserStatusRow = {
   formId: string;
   status: "EM_PREENCHIMENTO" | "FINALIZADO" | null;

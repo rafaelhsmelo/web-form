@@ -1,5 +1,6 @@
 import {
   FormOverview,
+  CompiledFormResponse,
   FormUser,
   Registro,
   Status,
@@ -193,6 +194,55 @@ export async function getUsersByFormId(formId: string): Promise<FormUser[]> {
     updatedAt: (row.updatedAt as string | null) ?? null,
     finalizedAt: (row.finalizedAt as string | null) ?? null,
   }));
+}
+
+export async function getCompiledFormResponses(
+  formId: string,
+): Promise<CompiledFormResponse[]> {
+  const result = await turso.execute({
+    sql: `
+      SELECT u.userId, u.name, r.status, r.updatedAt, r.finalizedAt, r.answers
+      FROM users u
+      LEFT JOIN respostas r ON r.userId = u.userId
+      WHERE u.formId = ?
+      ORDER BY COALESCE(u.name, u.userId), u.userId
+    `,
+    args: [formId],
+  });
+
+  return result.rows.map((row) => {
+    let answers: Record<string, string> = {};
+    if (typeof row.answers === "string") {
+      try {
+        const parsedAnswers: unknown = JSON.parse(row.answers);
+        if (
+          typeof parsedAnswers !== "object" ||
+          parsedAnswers === null ||
+          Array.isArray(parsedAnswers) ||
+          !Object.values(parsedAnswers).every(
+            (answer) => typeof answer === "string",
+          )
+        ) {
+          throw new Error("formato inválido");
+        }
+        answers = parsedAnswers as Record<string, string>;
+      } catch (error) {
+        throw new Error(
+          `As respostas do userId "${String(row.userId)}" estão corrompidas.`,
+          { cause: error },
+        );
+      }
+    }
+
+    return {
+      userId: row.userId as string,
+      name: (row.name as string | null) ?? null,
+      status: (row.status as Status | null) ?? "VAZIO",
+      updatedAt: (row.updatedAt as string | null) ?? null,
+      finalizedAt: (row.finalizedAt as string | null) ?? null,
+      answers,
+    };
+  });
 }
 
 export async function getStatus(userId: string): Promise<Status> {

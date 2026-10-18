@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/adminAuth";
 import { turso } from "@/lib/turso";
+import { validateUserId, validateUserName } from "@/lib/validation";
 import { loadFormIdsFromCSV } from "@/utils/loadQuestions";
 
 type RouteContext = {
@@ -54,15 +55,17 @@ export async function POST(request: Request, context: RouteContext) {
 
   const userId = payload.userId.trim();
   const name = typeof payload.name === "string" ? payload.name.trim() : null;
-  if (userId.length === 0 || userId.length > 120) {
+  const userIdError = validateUserId(userId);
+  if (userIdError) {
     return NextResponse.json(
-      { error: "O userId deve ter entre 1 e 120 caracteres." },
+      { error: userIdError },
       { status: 400 },
     );
   }
-  if (name !== null && name.length > 120) {
+  const nameError = name === null ? null : validateUserName(name);
+  if (nameError) {
     return NextResponse.json(
-      { error: "O nome deve ter no máximo 120 caracteres." },
+      { error: nameError },
       { status: 400 },
     );
   }

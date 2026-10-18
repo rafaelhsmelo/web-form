@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 
 type AdminUserNameProps = {
   formId: string;
@@ -32,10 +33,16 @@ export default function AdminUserName({
           body: JSON.stringify({ name }),
         },
       );
-      const data = (await response.json()) as { name?: string; error?: string };
+      const data = await readApiResponse(response);
 
-      if (!response.ok || typeof data.name !== "string") {
-        throw new Error(data.error ?? "Não foi possível salvar o nome.");
+      if (
+        !response.ok ||
+        typeof data !== "object" ||
+        data === null ||
+        !("name" in data) ||
+        typeof data.name !== "string"
+      ) {
+        throw new Error(getApiError(data, "Não foi possível salvar o nome."));
       }
 
       setName(data.name);

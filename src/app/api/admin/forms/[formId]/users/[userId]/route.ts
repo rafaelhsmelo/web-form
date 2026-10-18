@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/adminAuth";
 import { turso } from "@/lib/turso";
+import { validateUserId, validateUserName } from "@/lib/validation";
 
 type RouteContext = {
   params: Promise<{ formId: string; userId: string }>;
@@ -50,9 +51,10 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (hasName) {
     const name = (payload.name as string).trim();
-    if (name.length === 0 || name.length > 120) {
+    const nameError = validateUserName(name, true);
+    if (nameError) {
       return NextResponse.json(
-        { error: "O nome deve ter entre 1 e 120 caracteres." },
+        { error: nameError },
         { status: 400 },
       );
     }
@@ -61,9 +63,10 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const newUserId = (payload.userId as string).trim();
-  if (newUserId.length === 0 || newUserId.length > 120) {
+  const userIdError = validateUserId(newUserId);
+  if (userIdError) {
     return NextResponse.json(
-      { error: "O userId deve ter entre 1 e 120 caracteres." },
+      { error: userIdError },
       { status: 400 },
     );
   }
@@ -155,14 +158,21 @@ export async function DELETE(request: Request, context: RouteContext) {
     );
   }
 
-  await turso.execute({
-    sql: "DELETE FROM respostas WHERE userId = ?",
-    args: [userId],
-  });
-  await turso.execute({
-    sql: "DELETE FROM users WHERE userId = ? AND formId = ?",
-    args: [userId, formId],
-  });
+  const transaction = await turso.transaction("write");
+  try {
+    await transaction.execute({
+      sql: "DELETE FROM respostas WHERE userId = ?",
+      args: [userId],
+    });
+    await transaction.execute({
+      sql: "DELETE FROM users WHERE userId = ? AND formId = ?",
+      args: [userId, formId],
+    });
+    await transaction.commit();
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
 
   return NextResponse.json({ message: "Usuário excluído." });
 }

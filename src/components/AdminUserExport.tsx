@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 
 type AdminUserExportProps = {
   formId: string;
@@ -27,17 +28,12 @@ export default function AdminUserExport({
       if (!response.ok) {
         let data: unknown;
         try {
-          data = await response.json();
+          data = await readApiResponse(response);
         } catch {
           data = null;
         }
         throw new Error(
-          typeof data === "object" &&
-            data !== null &&
-            "error" in data &&
-            typeof data.error === "string"
-            ? data.error
-            : "Não foi possível baixar as respostas.",
+          getApiError(data, "Não foi possível baixar as respostas."),
         );
       }
 

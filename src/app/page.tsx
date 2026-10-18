@@ -19,7 +19,7 @@ export default async function Home() {
   return (
     <QuestionsForm
       questions={questions}
-      initialStatus={registration?.status ?? "NAO_INICIADO"}
+      initialStatus={registration?.status ?? "VAZIO"}
       initialCurrentStep={registration?.currentStep ?? 0}
       initialAnswers={registration?.answers ?? {}}
     />

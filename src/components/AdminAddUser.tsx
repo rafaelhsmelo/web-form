@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 
 type AdminAddUserProps = {
   formId: string;
@@ -28,10 +29,12 @@ export default function AdminAddUser({ formId }: AdminAddUserProps) {
           body: JSON.stringify({ userId, name }),
         },
       );
-      const data = (await response.json()) as { error?: string };
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Não foi possível adicionar o usuário.");
+        throw new Error(
+          getApiError(data, "Não foi possível adicionar o usuário."),
+        );
       }
 
       setUserId("");

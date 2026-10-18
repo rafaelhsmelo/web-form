@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 
 type AdminFormActionsProps = {
   formId: string;
@@ -22,17 +23,15 @@ export default function AdminFormActions({
       if (!response.ok) {
         let data: unknown;
         try {
-          data = await response.json();
+          data = await readApiResponse(response);
         } catch {
           data = null;
         }
         throw new Error(
-          typeof data === "object" &&
-            data !== null &&
-            "error" in data &&
-            typeof data.error === "string"
-            ? data.error
-            : "A exportação não pôde ser concluída. Tente novamente.",
+          getApiError(
+            data,
+            "A exportação não pôde ser concluída. Tente novamente.",
+          ),
         );
       }
 
@@ -64,7 +63,7 @@ export default function AdminFormActions({
         title="Disponível em breve"
         className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Ver (em breve)
+        Ver
       </button>
       <button
         type="button"

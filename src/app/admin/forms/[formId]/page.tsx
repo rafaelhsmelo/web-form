@@ -12,8 +12,8 @@ type FormDetailsPageProps = {
 };
 
 const statusLabels = {
-  NAO_INICIADO: "Vazio",
-  EM_PREENCHIMENTO: "Rascunho",
+  VAZIO: "Vazio",
+  RASCUNHO: "Rascunho",
   FINALIZADO: "Concluído",
 } as const;
 
@@ -45,7 +45,7 @@ export default async function FormDetailsPage({
             href="/admin"
             className="rounded-full border border-gray-300 px-5 py-2 font-medium text-gray-700"
           >
-            Voltar para formulários
+            Voltar
           </Link>
         </div>
 

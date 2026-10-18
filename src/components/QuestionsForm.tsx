@@ -3,16 +3,13 @@
 import { useState } from "react";
 import type { Status } from "@/lib/types";
 import type { Question } from "@/utils/loadQuestions";
+import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 
 interface QuestionsFormProps {
   questions: Question[];
   initialStatus: Status;
   initialCurrentStep: number;
   initialAnswers: Record<string, string>;
-}
-
-interface ApiError {
-  error?: string;
 }
 
 export default function QuestionsForm({
@@ -56,13 +53,15 @@ export default function QuestionsForm({
           currentStep: nextStep,
         }),
       });
-      const data = (await response.json()) as ApiError;
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Não foi possível salvar o progresso.");
+        throw new Error(
+          getApiError(data, "Não foi possível salvar o progresso."),
+        );
       }
 
-      setStatus("EM_PREENCHIMENTO");
+      setStatus("RASCUNHO");
       setPendingSave(null);
       return true;
     } catch (saveFailure) {
@@ -91,17 +90,17 @@ export default function QuestionsForm({
 
     try {
       const response = await fetch("/api/respostas", { method: "DELETE" });
-      const data = (await response.json()) as ApiError;
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
         throw new Error(
-          data.error ?? "Não foi possível recomeçar o Formulário.",
+          getApiError(data, "Não foi possível recomeçar o Formulário."),
         );
       }
 
       setAnswers({});
       setCurrentStep(0);
-      setStatus("NAO_INICIADO");
+      setStatus("VAZIO");
       setIsReviewing(false);
       setShowForm(true);
     } catch (restartFailure) {
@@ -118,16 +117,18 @@ export default function QuestionsForm({
   const handleExit = async () => {
     if (isSaving || isSubmitting || isRestarting) return;
 
-    if (status === "EM_PREENCHIMENTO") {
+    if (status === "RASCUNHO") {
       const saved = await persistProgress(answers, currentStep);
       if (!saved) return;
     }
 
     try {
       const response = await fetch("/api/user", { method: "DELETE" });
-      const data = (await response.json()) as ApiError;
+      const data = await readApiResponse(response);
       if (!response.ok) {
-        throw new Error(data.error ?? "Não foi possível encerrar a sessão.");
+        throw new Error(
+          getApiError(data, "Não foi possível encerrar a sessão."),
+        );
       }
       window.location.reload();
     } catch (exitFailure) {
@@ -188,12 +189,10 @@ export default function QuestionsForm({
 
     try {
       const response = await fetch("/api/enviar", { method: "POST" });
-      const data = (await response.json()) as ApiError;
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
-        throw new Error(
-          data.error ?? "Não foi possível enviar o Formulário.",
-        );
+        throw new Error(getApiError(data, "Não foi possível enviar o Formulário."));
       }
 
       setStatus("FINALIZADO");
@@ -332,7 +331,7 @@ export default function QuestionsForm({
     );
   }
 
-  if (status === "NAO_INICIADO" && !showForm) {
+  if (status === "VAZIO" && !showForm) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <section className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
@@ -353,7 +352,7 @@ export default function QuestionsForm({
     );
   }
 
-  if (status === "EM_PREENCHIMENTO" && !showForm) {
+  if (status === "RASCUNHO" && !showForm) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <section className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">

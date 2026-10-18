@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 
 type AdminUserIdProps = {
   formId: string;
@@ -29,10 +30,18 @@ export default function AdminUserId({ formId, userId }: AdminUserIdProps) {
           body: JSON.stringify({ userId: value }),
         },
       );
-      const data = (await response.json()) as { userId?: string; error?: string };
+      const data = await readApiResponse(response);
 
-      if (!response.ok || typeof data.userId !== "string") {
-        throw new Error(data.error ?? "Não foi possível salvar o userId.");
+      if (
+        !response.ok ||
+        typeof data !== "object" ||
+        data === null ||
+        !("userId" in data) ||
+        typeof data.userId !== "string"
+      ) {
+        throw new Error(
+          getApiError(data, "Não foi possível salvar o userId."),
+        );
       }
 
       router.push(

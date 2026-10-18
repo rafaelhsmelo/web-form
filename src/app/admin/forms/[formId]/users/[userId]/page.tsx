@@ -60,7 +60,7 @@ export default async function UserDetailsPage({
               href={`/admin/forms/${encodeURIComponent(formId)}`}
               className="rounded-full border border-gray-300 px-5 py-2 font-medium text-gray-700"
             >
-              Voltar para usuários
+              Voltar
             </Link>
           </div>
         </div>

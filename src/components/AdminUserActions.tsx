@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import AdminUserExport from "@/components/AdminUserExport";
+import type { Status } from "@/lib/types";
+import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 
 type AdminUserActionsProps = {
   formId: string;
   userId: string;
-  status: "NAO_INICIADO" | "EM_PREENCHIMENTO" | "FINALIZADO";
+  status: Status;
 };
 
 export default function AdminUserActions({
@@ -34,10 +36,12 @@ export default function AdminUserActions({
         `/api/admin/forms/${encodeURIComponent(formId)}/users/${encodeURIComponent(userId)}`,
         { method: "DELETE" },
       );
-      const data = (await response.json()) as { error?: string };
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Não foi possível excluir o usuário.");
+        throw new Error(
+          getApiError(data, "Não foi possível excluir o usuário."),
+        );
       }
 
       window.location.reload();
@@ -70,6 +74,11 @@ export default function AdminUserActions({
           Ver
         </button>
       )}
+      <AdminUserExport
+        formId={formId}
+        userId={userId}
+        disabled={status !== "FINALIZADO" || isDeleting}
+      />
       <button
         type="button"
         onClick={() => void handleDelete()}
@@ -78,11 +87,6 @@ export default function AdminUserActions({
       >
         {isDeleting ? "Excluindo..." : "Excluir"}
       </button>
-      <AdminUserExport
-        formId={formId}
-        userId={userId}
-        disabled={status !== "FINALIZADO" || isDeleting}
-      />
       {error && (
         <p role="alert" className="basis-full text-xs text-red-600">
           {error}

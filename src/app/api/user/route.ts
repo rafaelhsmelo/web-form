@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       userId,
       formId: userInfo.formId,
-      status: registro?.status ?? "NAO_INICIADO",
+      status: registro?.status ?? "VAZIO",
       currentStep: registro?.currentStep ?? 0,
       answers: registro?.answers ?? {},
       perguntas,

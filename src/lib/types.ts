@@ -1,6 +1,5 @@
-// Status que o sistema expõe. NAO_INICIADO nunca é gravado:
-// ele representa a ausência de registro para o userId.
-export type Status = "NAO_INICIADO" | "EM_PREENCHIMENTO" | "FINALIZADO";
+// VAZIO representa a ausência de registro para o userId.
+export type Status = "VAZIO" | "RASCUNHO" | "FINALIZADO";
 
 // Entrada de data/arquivo.json
 export type UserInfo = {
@@ -17,9 +16,18 @@ export type FormOverview = {
   totalUserCount: number;
 };
 
+export type FormUser = {
+  userId: string;
+  formId: string;
+  name: string | null;
+  status: Status;
+  updatedAt: string | null;
+  finalizedAt: string | null;
+};
+
 // Entrada de data/respostas.json (uma por userId)
 export type Registro = {
-  status: "EM_PREENCHIMENTO" | "FINALIZADO";
+  status: "RASCUNHO" | "FINALIZADO";
   currentStep: number;
   answers: Record<string, string>;
   updatedAt: string;

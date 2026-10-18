@@ -1,17 +1,77 @@
-import { FormOverview, Registro, Status, UserInfo } from "./types";
+import {
+  FormOverview,
+  FormUser,
+  Registro,
+  Status,
+  UserInfo,
+} from "./types";
 import { turso } from "./turso";
 import { loadFormIdsFromCSV } from "@/utils/loadQuestions";
 
 export type FinalizedUserSubmission = {
   userId: string;
   formId: string;
+  name: string | null;
   finalizedAt: string;
   answers: Record<string, string>;
 };
 
+function parseFinalizedSubmissionRow(
+  row: Record<string, unknown>,
+  userId: string,
+): FinalizedUserSubmission {
+  if (typeof row.finalizedAt !== "string" || typeof row.answers !== "string") {
+    throw new Error(
+      `As respostas finalizadas do userId "${userId}" estão inválidas.`,
+    );
+  }
+
+  let answers: Record<string, string>;
+  try {
+    answers = JSON.parse(row.answers) as Record<string, string>;
+  } catch (error) {
+    throw new Error(
+      `As respostas finalizadas do userId "${userId}" estão corrompidas.`,
+      { cause: error },
+    );
+  }
+
+  return {
+    userId: row.userId as string,
+    formId: row.formId as string,
+    name: (row.name as string | null) ?? null,
+    finalizedAt: row.finalizedAt,
+    answers,
+  };
+}
+
+export async function getFinalizedUserSubmission(
+  formId: string,
+  userId: string,
+): Promise<FinalizedUserSubmission | null> {
+  const result = await turso.execute({
+    sql: `
+      SELECT r.userId, u.formId, u.name, r.finalizedAt, r.answers
+      FROM respostas r
+      JOIN users u ON r.userId = u.userId
+      WHERE r.userId = ? AND u.formId = ? AND r.status = 'FINALIZADO'
+    `,
+    args: [userId, formId],
+  });
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  return parseFinalizedSubmissionRow(
+    result.rows[0] as unknown as Record<string, unknown>,
+    userId,
+  );
+}
+
 type UserStatusRow = {
   formId: string;
-  status: "EM_PREENCHIMENTO" | "FINALIZADO" | null;
+  status: "RASCUNHO" | "FINALIZADO" | null;
 };
 // RN001: o userId só é válido se existir na tabela users
 export async function findUser(userId: string): Promise<UserInfo | null> {
@@ -49,7 +109,7 @@ export async function getRegistro(userId: string): Promise<Registro | null> {
   }
 
   return {
-    status: row.status as "EM_PREENCHIMENTO" | "FINALIZADO",
+    status: row.status as "RASCUNHO" | "FINALIZADO",
     currentStep: row.currentStep as number,
     answers: parsedAnswers,
     updatedAt: row.updatedAt as string,
@@ -60,7 +120,7 @@ export async function getRegistro(userId: string): Promise<Registro | null> {
 export async function getFinalizedUserSubmissions(): Promise<FinalizedUserSubmission[]> {
   const result = await turso.execute({
     sql: `
-      SELECT r.userId, u.formId, r.finalizedAt, r.answers
+      SELECT r.userId, u.formId, u.name, r.finalizedAt, r.answers
       FROM respostas r
       JOIN users u ON r.userId = u.userId
       WHERE r.status = 'FINALIZADO'
@@ -68,35 +128,12 @@ export async function getFinalizedUserSubmissions(): Promise<FinalizedUserSubmis
     `,
   });
 
-  return result.rows.map((row) => {
-    if (typeof row.finalizedAt !== "string") {
-      throw new Error(
-        `O Formulário finalizado do userId "${String(row.userId)}" não possui data de envio.`,
-      );
-    }
-    if (typeof row.answers !== "string") {
-      throw new Error(
-        `As respostas finalizadas do userId "${String(row.userId)}" estão inválidas.`,
-      );
-    }
-
-    let answers: Record<string, string>;
-    try {
-      answers = JSON.parse(row.answers) as Record<string, string>;
-    } catch (error) {
-      throw new Error(
-        `As respostas finalizadas do userId "${String(row.userId)}" estão corrompidas.`,
-        { cause: error },
-      );
-    }
-
-    return {
-      userId: row.userId as string,
-      formId: row.formId as string,
-      finalizedAt: row.finalizedAt,
-      answers,
-    };
-  });
+  return result.rows.map((row) =>
+    parseFinalizedSubmissionRow(
+      row as unknown as Record<string, unknown>,
+      String(row.userId),
+    ),
+  );
 }
 
 export async function getFormsOverview(): Promise<FormOverview[]> {
@@ -122,7 +159,7 @@ export async function getFormsOverview(): Promise<FormOverview[]> {
       (user) => user.status === "FINALIZADO",
     ).length;
     const draftCount = users.filter(
-      (user) => user.status === "EM_PREENCHIMENTO",
+      (user) => user.status === "RASCUNHO",
     ).length;
 
     return {
@@ -136,9 +173,31 @@ export async function getFormsOverview(): Promise<FormOverview[]> {
   });
 }
 
+export async function getUsersByFormId(formId: string): Promise<FormUser[]> {
+  const result = await turso.execute({
+    sql: `
+      SELECT u.userId, u.formId, u.name, r.status, r.updatedAt, r.finalizedAt
+      FROM users u
+      LEFT JOIN respostas r ON r.userId = u.userId
+      WHERE u.formId = ?
+      ORDER BY u.userId
+    `,
+    args: [formId],
+  });
+
+  return result.rows.map((row) => ({
+    userId: row.userId as string,
+    formId: row.formId as string,
+    name: (row.name as string | null) ?? null,
+    status: (row.status as Status | null) ?? "VAZIO",
+    updatedAt: (row.updatedAt as string | null) ?? null,
+    finalizedAt: (row.finalizedAt as string | null) ?? null,
+  }));
+}
+
 export async function getStatus(userId: string): Promise<Status> {
   const registro = await getRegistro(userId);
-  return registro ? registro.status : "NAO_INICIADO";
+  return registro ? registro.status : "VAZIO";
 }
 
 // Cria ou atualiza o progresso no banco de dados. Recusa alteração se já finalizado (RN007)
@@ -159,7 +218,7 @@ export async function saveProgress(
   await turso.execute({
     sql: `
       INSERT INTO respostas (userId, status, currentStep, answers, updatedAt, finalizedAt)
-      VALUES (?, 'EM_PREENCHIMENTO', ?, ?, ?, NULL)
+      VALUES (?, 'RASCUNHO', ?, ?, ?, NULL)
       ON CONFLICT(userId) DO UPDATE SET
         currentStep = excluded.currentStep,
         answers = excluded.answers,
@@ -169,7 +228,7 @@ export async function saveProgress(
   });
 
   return {
-    status: "EM_PREENCHIMENTO",
+    status: "RASCUNHO",
     currentStep,
     answers,
     updatedAt: agora,

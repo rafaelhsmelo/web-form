@@ -2,10 +2,9 @@
 
 type AdminErrorProps = {
   error: Error & { digest?: string };
-  reset: () => void;
 };
 
-export default function AdminError({ error, reset }: AdminErrorProps) {
+export default function AdminError({ error }: AdminErrorProps) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <section className="w-full max-w-lg rounded-xl bg-white p-8 text-center shadow-sm">
@@ -23,7 +22,7 @@ export default function AdminError({ error, reset }: AdminErrorProps) {
         )}
         <button
           type="button"
-          onClick={reset}
+          onClick={() => window.location.reload()}
           className="mt-6 rounded-full bg-black px-6 py-3 font-medium text-white"
         >
           Tentar novamente

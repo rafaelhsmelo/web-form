@@ -20,7 +20,7 @@ export async function POST() {
   }
 
   const registro = await getRegistro(userId);
-  if (!registro || registro.status !== "EM_PREENCHIMENTO") {
+  if (!registro || registro.status !== "RASCUNHO") {
     return Response.json(
       { error: "Não há um Formulário em preenchimento para enviar." },
       { status: 409 },

@@ -1,7 +1,9 @@
 "use client";
 
+// Tela inicial onde a pessoa informa o userId para entrar no formulário.
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { getApiError, readApiResponse } from "@/utils/readApiResponse";
 
 export default function LoginUser() {
   const router = useRouter();
@@ -22,17 +24,15 @@ export default function LoginUser() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: userId.trim() }),
       });
-      const data: unknown = await response.json();
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
-        const message =
-          typeof data === "object" &&
-          data !== null &&
-          "error" in data &&
-          typeof data.error === "string"
-            ? data.error
-            : "Não foi possível validar o userId.";
-        throw new Error(message);
+        throw new Error(
+          getApiError(
+            data,
+            "Não foi possível validar o userId. Verifique a configuração do servidor.",
+          ),
+        );
       }
 
       router.refresh();
@@ -58,17 +58,10 @@ export default function LoginUser() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminKey: adminKey.trim() }),
       });
-      const data: unknown = await response.json();
+      const data = await readApiResponse(response);
 
       if (!response.ok) {
-        const message =
-          typeof data === "object" &&
-          data !== null &&
-          "error" in data &&
-          typeof data.error === "string"
-            ? data.error
-            : "A autenticação não foi realizada.";
-        throw new Error(message);
+        throw new Error(getApiError(data, "A autenticação não foi realizada."));
       }
 
       router.push("/admin");

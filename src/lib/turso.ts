@@ -13,6 +13,8 @@ try {
   }
 }
 
+// Cria uma única conexão compartilhada com o banco Turso.
+
 const databaseUrl = process.env.TURSO_DATABASE_URL;
 const authKey =
   process.env.TURSO_AUTH_KEY?.trim() ||

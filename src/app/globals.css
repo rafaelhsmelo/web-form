@@ -1,1 +1,11 @@
+/* Estilos globais: o Tailwind fornece as classes usadas nas telas. */
 @import "tailwindcss";
+
+@media print {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

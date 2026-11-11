@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+
+// Dashboard do administrador: resume os formulários e a situação dos usuários.
 import AdminDashboardActions from "@/components/AdminDashboardActions";
 import AdminFormActions from "@/components/AdminFormActions";
 import { hasAdminSession } from "@/lib/adminAuth";

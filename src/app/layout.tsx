@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+// Este arquivo cria a moldura comum de todas as páginas, como idioma e fonte.
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 

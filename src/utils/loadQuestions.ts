@@ -1,8 +1,10 @@
 import fs from "fs";
+
+// Lê o CSV e transforma suas linhas em perguntas agrupadas por question_id.
 import path from "path";
 import Papa from "papaparse";
 
-// Tipagem de dados
+// Estes tipos representam uma pergunta e suas opções depois que o CSV é lido.
 export type Option = {
   id: string;
   label: string;

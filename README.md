@@ -10,6 +10,13 @@ Aplicação web para coleta de dados por meio de um Formulário interativo multi
 - Tailwind CSS
 - Turso (libSQL/SQLite)
 
+## Mapa para manutenção
+
+O guia [Mapa do sistema](./docs/MAPA-SISTEMA.md) explica a estrutura do
+projeto, o caminho dos dados, as rotas e os arquivos que devem ser alterados
+em cada tipo de mudança. Ele foi escrito para ajudar principalmente quem está
+começando a programar.
+
 ## Configuração
 
 Crie `.env.local` com:

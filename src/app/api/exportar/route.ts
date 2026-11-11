@@ -1,4 +1,6 @@
 import { turso } from "@/lib/turso";
+
+// Gera a exportação usada pelo fluxo antigo do formulário público.
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 import { NextResponse } from "next/server";
 

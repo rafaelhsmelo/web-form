@@ -1,4 +1,6 @@
 import { finalize, getRegistro } from "@/lib/storage";
+
+// Confere o usuário conectado e transforma seu rascunho em envio definitivo.
 import { getAuthenticatedUserInfo } from "@/lib/auth";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 
@@ -20,7 +22,7 @@ export async function POST() {
   }
 
   const registro = await getRegistro(userId);
-  if (!registro || registro.status !== "EM_PREENCHIMENTO") {
+  if (!registro || registro.status !== "RASCUNHO") {
     return Response.json(
       { error: "Não há um Formulário em preenchimento para enviar." },
       { status: 409 },

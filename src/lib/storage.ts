@@ -1,19 +1,101 @@
-import { FormOverview, Registro, Status, UserInfo } from "./types";
+import {
+  type CompiledFormResponse,
+  type FormOverview,
+  type FormUser,
+  type Registro,
+  type Status,
+  type UserInfo,
+} from "./types";
+
+// Camada que conversa com o banco e concentra as regras de respostas e usuários.
 import { turso } from "./turso";
 import { loadFormIdsFromCSV } from "@/utils/loadQuestions";
 
 export type FinalizedUserSubmission = {
   userId: string;
   formId: string;
+  name: string | null;
   finalizedAt: string;
   answers: Record<string, string>;
 };
 
+function parseAnswers(
+  value: unknown,
+  userId: string,
+): Record<string, string> {
+  if (typeof value !== "string") {
+    return {};
+  }
+
+  try {
+    const parsedAnswers: unknown = JSON.parse(value);
+    if (
+      typeof parsedAnswers !== "object" ||
+      parsedAnswers === null ||
+      Array.isArray(parsedAnswers) ||
+      !Object.values(parsedAnswers).every(
+        (answer) => typeof answer === "string",
+      )
+    ) {
+      throw new Error("formato inválido");
+    }
+    return parsedAnswers as Record<string, string>;
+  } catch (error) {
+    throw new Error(
+      `As respostas do userId "${userId}" estão corrompidas.`,
+      { cause: error },
+    );
+  }
+}
+
+function parseFinalizedSubmissionRow(
+  row: Record<string, unknown>,
+  userId: string,
+): FinalizedUserSubmission {
+  if (typeof row.finalizedAt !== "string" || typeof row.answers !== "string") {
+    throw new Error(
+      `As respostas finalizadas do userId "${userId}" estão inválidas.`,
+    );
+  }
+
+  return {
+    userId: row.userId as string,
+    formId: row.formId as string,
+    name: (row.name as string | null) ?? null,
+    finalizedAt: row.finalizedAt,
+    answers: parseAnswers(row.answers, userId),
+  };
+}
+
+export async function getFinalizedUserSubmission(
+  formId: string,
+  userId: string,
+): Promise<FinalizedUserSubmission | null> {
+  const result = await turso.execute({
+    sql: `
+      SELECT r.userId, u.formId, u.name, r.finalizedAt, r.answers
+      FROM respostas r
+      JOIN users u ON r.userId = u.userId
+      WHERE r.userId = ? AND u.formId = ? AND r.status = 'FINALIZADO'
+    `,
+    args: [userId, formId],
+  });
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  return parseFinalizedSubmissionRow(
+    result.rows[0] as unknown as Record<string, unknown>,
+    userId,
+  );
+}
+
 type UserStatusRow = {
   formId: string;
-  status: "EM_PREENCHIMENTO" | "FINALIZADO" | null;
+  status: "RASCUNHO" | "FINALIZADO" | null;
 };
-// RN001: o userId só é válido se existir na tabela users
+// Um userId só pode entrar se já estiver cadastrado na tabela users.
 export async function findUser(userId: string): Promise<UserInfo | null> {
   const result = await turso.execute({
     sql: "SELECT userId, formId FROM users WHERE userId = ?",
@@ -38,20 +120,10 @@ export async function getRegistro(userId: string): Promise<Registro | null> {
 
   const row = result.rows[0];
 
-  // Proteção contra dados nulos, vazios ou corrompidos no banco de dados
-  let parsedAnswers: Record<string, string> = {};
-  if (row.answers && typeof row.answers === "string") {
-    try {
-      parsedAnswers = JSON.parse(row.answers);
-    } catch {
-      parsedAnswers = {}; // Falha silenciosa segura, assume que não há respostas
-    }
-  }
-
   return {
-    status: row.status as "EM_PREENCHIMENTO" | "FINALIZADO",
+    status: row.status as "RASCUNHO" | "FINALIZADO",
     currentStep: row.currentStep as number,
-    answers: parsedAnswers,
+    answers: parseAnswers(row.answers, userId),
     updatedAt: row.updatedAt as string,
     finalizedAt: row.finalizedAt as string | null,
   };
@@ -60,7 +132,7 @@ export async function getRegistro(userId: string): Promise<Registro | null> {
 export async function getFinalizedUserSubmissions(): Promise<FinalizedUserSubmission[]> {
   const result = await turso.execute({
     sql: `
-      SELECT r.userId, u.formId, r.finalizedAt, r.answers
+      SELECT r.userId, u.formId, u.name, r.finalizedAt, r.answers
       FROM respostas r
       JOIN users u ON r.userId = u.userId
       WHERE r.status = 'FINALIZADO'
@@ -68,35 +140,12 @@ export async function getFinalizedUserSubmissions(): Promise<FinalizedUserSubmis
     `,
   });
 
-  return result.rows.map((row) => {
-    if (typeof row.finalizedAt !== "string") {
-      throw new Error(
-        `O Formulário finalizado do userId "${String(row.userId)}" não possui data de envio.`,
-      );
-    }
-    if (typeof row.answers !== "string") {
-      throw new Error(
-        `As respostas finalizadas do userId "${String(row.userId)}" estão inválidas.`,
-      );
-    }
-
-    let answers: Record<string, string>;
-    try {
-      answers = JSON.parse(row.answers) as Record<string, string>;
-    } catch (error) {
-      throw new Error(
-        `As respostas finalizadas do userId "${String(row.userId)}" estão corrompidas.`,
-        { cause: error },
-      );
-    }
-
-    return {
-      userId: row.userId as string,
-      formId: row.formId as string,
-      finalizedAt: row.finalizedAt,
-      answers,
-    };
-  });
+  return result.rows.map((row) =>
+    parseFinalizedSubmissionRow(
+      row as unknown as Record<string, unknown>,
+      String(row.userId),
+    ),
+  );
 }
 
 export async function getFormsOverview(): Promise<FormOverview[]> {
@@ -122,7 +171,7 @@ export async function getFormsOverview(): Promise<FormOverview[]> {
       (user) => user.status === "FINALIZADO",
     ).length;
     const draftCount = users.filter(
-      (user) => user.status === "EM_PREENCHIMENTO",
+      (user) => user.status === "RASCUNHO",
     ).length;
 
     return {
@@ -136,12 +185,60 @@ export async function getFormsOverview(): Promise<FormOverview[]> {
   });
 }
 
-export async function getStatus(userId: string): Promise<Status> {
-  const registro = await getRegistro(userId);
-  return registro ? registro.status : "NAO_INICIADO";
+export async function getUsersByFormId(formId: string): Promise<FormUser[]> {
+  const result = await turso.execute({
+    sql: `
+      SELECT u.userId, u.formId, u.name, r.status, r.updatedAt, r.finalizedAt
+      FROM users u
+      LEFT JOIN respostas r ON r.userId = u.userId
+      WHERE u.formId = ?
+      ORDER BY u.userId
+    `,
+    args: [formId],
+  });
+
+  return result.rows.map((row) => ({
+    userId: row.userId as string,
+    formId: row.formId as string,
+    name: (row.name as string | null) ?? null,
+    status: (row.status as Status | null) ?? "VAZIO",
+    updatedAt: (row.updatedAt as string | null) ?? null,
+    finalizedAt: (row.finalizedAt as string | null) ?? null,
+  }));
 }
 
-// Cria ou atualiza o progresso no banco de dados. Recusa alteração se já finalizado (RN007)
+export async function getCompiledFormResponses(
+  formId: string,
+): Promise<CompiledFormResponse[]> {
+  const result = await turso.execute({
+    sql: `
+      SELECT u.userId, u.name, r.status, r.updatedAt, r.finalizedAt, r.answers
+      FROM users u
+      LEFT JOIN respostas r ON r.userId = u.userId
+      WHERE u.formId = ?
+      ORDER BY COALESCE(u.name, u.userId), u.userId
+    `,
+    args: [formId],
+  });
+
+  return result.rows.map((row) => {
+    return {
+      userId: row.userId as string,
+      name: (row.name as string | null) ?? null,
+      status: (row.status as Status | null) ?? "VAZIO",
+      updatedAt: (row.updatedAt as string | null) ?? null,
+      finalizedAt: (row.finalizedAt as string | null) ?? null,
+      answers: parseAnswers(row.answers, String(row.userId)),
+    };
+  });
+}
+
+export async function getStatus(userId: string): Promise<Status> {
+  const registro = await getRegistro(userId);
+  return registro ? registro.status : "VAZIO";
+}
+
+// Salva o rascunho. Um formulário finalizado não pode ser alterado.
 export async function saveProgress(
   userId: string,
   answers: Record<string, string>,
@@ -159,7 +256,7 @@ export async function saveProgress(
   await turso.execute({
     sql: `
       INSERT INTO respostas (userId, status, currentStep, answers, updatedAt, finalizedAt)
-      VALUES (?, 'EM_PREENCHIMENTO', ?, ?, ?, NULL)
+      VALUES (?, 'RASCUNHO', ?, ?, ?, NULL)
       ON CONFLICT(userId) DO UPDATE SET
         currentStep = excluded.currentStep,
         answers = excluded.answers,
@@ -169,7 +266,7 @@ export async function saveProgress(
   });
 
   return {
-    status: "EM_PREENCHIMENTO",
+    status: "RASCUNHO",
     currentStep,
     answers,
     updatedAt: agora,
@@ -177,7 +274,7 @@ export async function saveProgress(
   };
 }
 
-// Descarta o preenchimento em andamento (recomeçar). Recusa se finalizado
+// Apaga o rascunho para a pessoa começar novamente.
 export async function discardProgress(userId: string): Promise<void> {
   const registroAtual = await getRegistro(userId);
 
@@ -191,7 +288,7 @@ export async function discardProgress(userId: string): Promise<void> {
   });
 }
 
-// Envio definitivo e irreversível (RF007)
+// Marca o rascunho como finalizado; depois disso as respostas ficam bloqueadas.
 export async function finalize(userId: string): Promise<Registro> {
   const registroAtual = await getRegistro(userId);
 

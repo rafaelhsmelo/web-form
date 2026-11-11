@@ -1,5 +1,6 @@
 "use client";
 
+// Ações do rodapé do dashboard, como encerrar a sessão administrativa.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 

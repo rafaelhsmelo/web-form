@@ -1,4 +1,6 @@
 import { discardProgress, saveProgress } from "@/lib/storage";
+
+// Endpoint do rascunho: salva o passo atual ou apaga o preenchimento.
 import { getAuthenticatedUserInfo } from "@/lib/auth";
 import { loadQuestionsFromCSV } from "@/utils/loadQuestions";
 

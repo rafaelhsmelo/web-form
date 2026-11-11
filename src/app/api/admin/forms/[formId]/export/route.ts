@@ -1,5 +1,7 @@
 import { GET as exportForms } from "@/app/api/admin/export/route";
 
+// Reaproveita a exportação geral, limitando o resultado a um formulário.
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ formId: string }> },
